@@ -1,7 +1,3 @@
-# Agent registry — 落地源（岗位名见 title；对敲见 adversary_of）
-# 蓝图：HARNESS_ENGINEERING/roles/agents.registry.yaml
-# 岗位单源：HARNESS_ENGINEERING/roles/agents.registry.yaml（title / description）
-
 version: 1
 
 defaults:
@@ -32,11 +28,11 @@ roles:
     title: 技术调研工程师
     soul_dir: souls/explore
     agent_file: .cursor/agents/explore.md
-    description: "技术调研工程师：只读探索代码库、分层与依赖。"
+    description: "技术调研工程师：深度只读审计。代码库分层、依赖、违规扫描。"
     model: inherit
     readonly: true
     mission_template: templates/mission/explore.mission.md
-    adversary_of: [reviewer]
+    adversary_of: []
     debate_mode: cross-exam
     domains: ["*"]
 
@@ -57,7 +53,7 @@ roles:
     soul_dir: souls/reviewer
     agent_file: .cursor/agents/reviewer.md
     claude_file: .claude/agents/reviewer.md
-    description: "代码审查工程师：安全与架构审查。auth/支付/对外 API 或 PR 前使用。"
+    description: "代码审查工程师：逻辑、命名、错误处理、测试覆盖。P2 基座，路由给专审角色。"
     model: inherit
     readonly: true
     mission_template: templates/mission/reviewer.mission.md
@@ -69,7 +65,7 @@ roles:
     title: 测试开发工程师
     soul_dir: souls/test-writer
     agent_file: .cursor/agents/test-writer.md
-    description: "测试开发工程师：补充行为测试与边界测试。"
+    description: "测试开发工程师：补充行为测试与边界测试（ad-hoc，无 Spec）。"
     model: inherit
     readonly: false
     mission_template: templates/mission/test-writer.mission.md
@@ -78,26 +74,27 @@ roles:
     domains: ["*"]
 
   doc-gardener:
-    title: 文档工程师
+    title: 文档工程师（P1 准入，计划日落）
     soul_dir: souls/doc-gardener
     agent_file: .cursor/agents/doc-gardener.md
-    description: "文档工程师：对照 AGENTS 地图扫描 stale 文档与断链。"
+    description: "文档工程师：扫 stale 文档与断链。日落计划：迁移到 CI + documentation-reviewer（P2）。"
     model: inherit
     readonly: true
     mission_template: templates/mission/doc-gardener.mission.md
-    adversary_of: [spec-judge]
+    adversary_of: []
     debate_mode: judge-verdict
     domains: ["*"]
+    phase: P1-sunset
 
   harness-auditor:
     title: 架构治理工程师
     soul_dir: souls/harness-auditor
     agent_file: .cursor/agents/harness-auditor.md
-    description: "架构治理工程师：解读分层边界、GC、harness check。"
+    description: "架构治理工程师：分层边界、GC、harness check。纯约束检查，无对敲对手。"
     model: inherit
     readonly: true
     mission_template: templates/mission/harness-auditor.mission.md
-    adversary_of: [implementer]
+    adversary_of: []
     debate_mode: kill-findings
     domains: ["*"]
 
@@ -146,26 +143,28 @@ roles:
     soul_dir: souls/spec/impl
     agent_file: .cursor/agents/spec-impl.md
     claude_file: .claude/agents/sdd/spec-impl.md
-    description: "特性开发工程师：按 tasks.md 的 task_id 实现代码。"
+    description: "特性开发工程师：按 tasks.md 的 task_id 实现代码。可与 spec-test 并行。"
     workflow: sdd
     model: inherit
     readonly: false
     mission_template: templates/mission/spec-impl.mission.md
     adversary_of: [reviewer, test-writer]
     debate_mode: kill-findings
+    can_parallel_with: [spec-test]
 
   spec-test:
     title: 测试工程师
     soul_dir: souls/spec/test
     agent_file: .cursor/agents/spec-test.md
     claude_file: .claude/agents/sdd/spec-test.md
-    description: "测试工程师：按规格验证与补测试。"
+    description: "测试工程师：按规格验证与补测试。可与 spec-impl 并行。"
     workflow: sdd
     model: inherit
     readonly: false
     mission_template: templates/mission/spec-test.mission.md
     adversary_of: [reviewer]
     debate_mode: cross-exam
+    can_parallel_with: [spec-impl]
 
   spec-judge:
     title: 技术评审委员
@@ -184,31 +183,34 @@ roles:
   security-reviewer:
     title: 安全工程师
     extends: reviewer
-    description: "安全工程师：信任边界、注入、密钥。"
+    description: "安全工程师：信任边界、注入、密钥、加密。"
     readonly: true
     mission_template: templates/mission/security-reviewer.mission.md
-    adversary_of: [implementer]
+    adversary_of: [implementer, spec-impl]
     debate_mode: kill-findings
+    specialization: "信任边界、密钥管理、注入防护、加密策略"
     phase: P2
 
   architecture-reviewer:
     title: 架构评审工程师
     extends: reviewer
-    description: "架构评审工程师：LAYERS、模式、重复抽象。"
+    description: "架构评审工程师：LAYERS、模式、重复抽象、接口设计。"
     readonly: true
     mission_template: templates/mission/architecture-reviewer.mission.md
-    adversary_of: [implementer]
+    adversary_of: [implementer, spec-design]
     debate_mode: kill-findings
+    specialization: "分层边界、设计模式、重复代码抽象、模块接口"
     phase: P2
 
   impact-reviewer:
     title: 变更影响分析师
     extends: reviewer
-    description: "变更影响分析师：破坏性 API、依赖方、迁移。"
+    description: "变更影响分析师：破坏性 API、依赖方、迁移路径。"
     readonly: true
     mission_template: templates/mission/impact-reviewer.mission.md
-    adversary_of: [implementer]
+    adversary_of: [implementer, spec-design, spec-tasks]
     debate_mode: kill-findings
+    specialization: "API 兼容性、依赖方影响、迁移策略"
     phase: P2
 
   observability-reviewer:
@@ -217,8 +219,9 @@ roles:
     description: "可观测性工程师：日志、指标、追踪、告警。"
     readonly: true
     mission_template: templates/mission/observability-reviewer.mission.md
-    adversary_of: [implementer]
+    adversary_of: [implementer, spec-impl]
     debate_mode: kill-findings
+    specialization: "日志结构、指标定义、分布式追踪、告警规则"
     phase: P2
 
   solution-fit-challenger:
@@ -227,8 +230,9 @@ roles:
     description: "方案评审工程师：挑战方案合理性（实现正确但方向错）。"
     readonly: true
     mission_template: templates/mission/solution-fit-challenger.mission.md
-    adversary_of: [spec-design, implementer]
+    adversary_of: [spec-design, implementer, spec-impl]
     debate_mode: cross-exam
+    specialization: "方案合理性、产品方向对齐、技术决策权衡"
     phase: P2
 
   # ─── 交付岗位 P2 ───
