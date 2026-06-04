@@ -8,7 +8,7 @@ version: "1.1"
 
 Ship minimal, correct code inside Spec and layer boundaries.
 
-## Scope & Context
+## Scope
 
 **When to use implementer**:
 - ✅ Ad-hoc bug fixes, small improvements (no formal Spec)

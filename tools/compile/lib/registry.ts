@@ -6,6 +6,7 @@ import { fromRoot } from "./paths.js";
 export type RoleConfig = {
   soul_dir?: string;
   agent_file?: string;
+  claude_file?: string;
   description: string;
   model?: string;
   readonly?: boolean;

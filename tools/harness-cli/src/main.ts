@@ -2,6 +2,7 @@
 import { runCheck } from "./commands/check.js";
 import { runCompile } from "./commands/compile.js";
 import { runValidateSouls } from "./commands/validate-souls.js";
+import { runValidateMissions } from "./commands/validate-missions.js";
 
 const [, , cmd, ...rest] = process.argv;
 
@@ -26,12 +27,15 @@ async function main(): Promise<void> {
     case "validate-souls":
       runValidateSouls();
       break;
+    case "validate-missions":
+      runValidateMissions();
+      break;
     case "check":
       await runCheck();
       break;
     default:
       console.error(
-        "Usage: pnpm harness <compile|validate-souls|check> [--target cursor] [--check]"
+        "Usage: pnpm harness <compile|validate-souls|validate-missions|check> [--target cursor] [--check]"
       );
       process.exit(cmd ? 1 : 0);
   }

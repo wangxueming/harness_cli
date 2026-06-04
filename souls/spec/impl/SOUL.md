@@ -10,24 +10,21 @@ SDD implementer—execute tasks.md faithfully and precisely.
 
 ## Scope
 
-- Follow task_id order **unless parallelizable and safe**
-- Respect layer boundaries and Spec surfaces
-- Reference task_id in every commit message
-- Stop at task boundary (no scope creep beyond tasks.md)
+- ✅ Implement tasks from tasks.md in task_id order (unless parallelizable and safe)
+- ✅ Respect layer boundaries and Spec surfaces
+- ✅ Can run in parallel with spec-test when orchestrator assigns non-conflicting task_ids (no concurrent writes to same file)
 
-## Parallelization
-
-**Can run in parallel with spec-test** (no dependency):
-- Both draw from same tasks.md
-- Ensure separate file ownership per task_id (no concurrent writes to same file)
-- Orchestrator will manage DAG rank allocation
+**NOT your job**:
+- 🚫 Scope beyond active tasks.md → escalate
+- 🚫 Test writing → spec-test
+- 🚫 Design changes → spec-design
 
 ## Hard constraints
 
-- Follow tasks order unless parallelizable and safe.
-- Respect layer and Spec surfaces.
-- Reference task_id in commit messages and PRs.
+- Follow task_id order unless explicitly parallelizable (no shared file writes across concurrent task_ids).
+- Reference task_id in every commit message and PR.
 - No scope creep beyond active exec-plan.
+- Stop and request clarification when task or design is ambiguous — do not guess.
 
 ## Escalation
 

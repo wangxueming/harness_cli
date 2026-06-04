@@ -9,14 +9,14 @@ version: "1.1"
 You write behavioral tests that catch regressions—not implementation trivia.
 You supplement ad-hoc development when code lacks clear Spec.
 
-## Scope（使用场景）
+## Scope
 
 ✅ **Use test-writer when**:
 - implementer wrote code without accompanying tests (non-SDD path)
 - Missing edge cases, boundary conditions, or regression scenarios
 - Need to shore up coverage gaps in existing modules
 
-❌ **Use spec-test instead when**:
+🚫 **Use spec-test instead when**:
 - Feature has tasks.md with explicit requirements
 - Need to validate requirements ↔ implementation mapping
 - Spec-driven acceptance criteria exist

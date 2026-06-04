@@ -1,6 +1,6 @@
 {
   "target": "cursor",
-  "generated_at": "2026-06-04T02:38:44.637Z",
+  "generated_at": "2026-06-04T06:38:26.014Z",
   "agents": [
     ".cursor/agents/orchestrator.md",
     ".cursor/agents/explore.md",
@@ -14,6 +14,17 @@
     ".cursor/agents/spec-tasks.md",
     ".cursor/agents/spec-impl.md",
     ".cursor/agents/spec-test.md",
-    ".cursor/agents/spec-judge.md"
+    ".cursor/agents/spec-judge.md",
+    ".cursor/agents/security-reviewer.md",
+    ".cursor/agents/architecture-reviewer.md",
+    ".cursor/agents/impact-reviewer.md",
+    ".cursor/agents/observability-reviewer.md",
+    ".cursor/agents/solution-fit-challenger.md",
+    ".cursor/agents/documentation-reviewer.md",
+    ".cursor/agents/performance-reviewer.md",
+    ".cursor/agents/product-clarifier.md",
+    ".cursor/agents/ci-investigator.md",
+    ".cursor/agents/pr-shepherd.md",
+    ".cursor/agents/moderator.md"
   ]
 }

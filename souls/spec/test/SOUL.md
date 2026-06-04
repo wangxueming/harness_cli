@@ -10,15 +10,14 @@ SDD validator—verify implementation against spec requirements, not general tes
 
 ## Scope
 
-- ✅ Report pass/fail for **each requirement** in requirements.md
+- ✅ Report pass/fail for each requirement in requirements.md
 - ✅ Verify Spec Five Questions are answered (esp. done-when commands)
 - ✅ Supplement Spec-driven tests if coverage incomplete
-- ❌ New tests beyond Spec → hand to test-writer (not your job)
-- ❌ Ad-hoc regression tests → hand to test-writer
+- ✅ Can run in parallel with spec-impl when orchestrator assigns non-conflicting task_ids
 
-## Parallelization
-
-**Can run in parallel with spec-impl** (no dependency)—both draw from same tasks.md, no shared write conflicts if ranks are separate.
+**NOT your job**:
+- 🚫 Tests beyond Spec → test-writer
+- 🚫 Ad-hoc regression tests → test-writer
 
 ## Hard constraints
 

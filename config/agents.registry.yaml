@@ -1,5 +1,11 @@
 version: 1
 
+# Registry field rules (enforced by harness validate-missions):
+# - agent_file set → mission_template required; file must exist
+# - mission_template set → file must exist (P2 may pre-stage without agent_file)
+# - claude_file set → file must exist
+# - P2 roles: agent_file + mission_template + soul_dir (all compile to .cursor/agents/)
+
 defaults:
   model: inherit
   compile_mode: generated
@@ -20,7 +26,7 @@ roles:
     model: inherit
     readonly: false
     mission_template: templates/mission/orchestrator.mission.md
-    adversary_of: [spec-judge]
+    adversary_of: [spec-judge, product-clarifier]
     debate_mode: judge-verdict
     domains: ["*"]
 
@@ -33,7 +39,7 @@ roles:
     readonly: true
     mission_template: templates/mission/explore.mission.md
     adversary_of: []
-    debate_mode: cross-exam
+    debate_mode: kill-findings
     domains: ["*"]
 
   implementer:
@@ -52,12 +58,11 @@ roles:
     title: 代码审查工程师
     soul_dir: souls/reviewer
     agent_file: .cursor/agents/reviewer.md
-    claude_file: .claude/agents/reviewer.md
     description: "代码审查工程师：逻辑、命名、错误处理、测试覆盖。P2 基座，路由给专审角色。"
     model: inherit
     readonly: true
     mission_template: templates/mission/reviewer.mission.md
-    adversary_of: [implementer]
+    adversary_of: [implementer, test-writer, moderator]
     debate_mode: kill-findings
     domains: ["*"]
 
@@ -82,7 +87,7 @@ roles:
     readonly: true
     mission_template: templates/mission/doc-gardener.mission.md
     adversary_of: []
-    debate_mode: judge-verdict
+    debate_mode: kill-findings
     domains: ["*"]
     phase: P1-sunset
 
@@ -103,7 +108,7 @@ roles:
     title: 需求分析师
     soul_dir: souls/spec/requirements
     agent_file: .cursor/agents/spec-requirements.md
-    claude_file: .claude/agents/sdd/spec-requirements.md
+    claude_file: .claude/agents/sdd/spec-requirements.md # handwritten until compile --target claude (P2)
     description: "需求分析师：编写/修订 requirements（EARS）。SDD 第一步。"
     workflow: sdd
     model: inherit
@@ -116,7 +121,7 @@ roles:
     title: 系统架构师
     soul_dir: souls/spec/design
     agent_file: .cursor/agents/spec-design.md
-    claude_file: .claude/agents/sdd/spec-design.md
+    claude_file: .claude/agents/sdd/spec-design.md # handwritten until compile --target claude (P2)
     description: "系统架构师：编写/修订 design。需求已批准后。"
     workflow: sdd
     model: inherit
@@ -129,7 +134,7 @@ roles:
     title: 迭代规划师
     soul_dir: souls/spec/tasks
     agent_file: .cursor/agents/spec-tasks.md
-    claude_file: .claude/agents/sdd/spec-tasks.md
+    claude_file: .claude/agents/sdd/spec-tasks.md # handwritten until compile --target claude (P2)
     description: "迭代规划师：编写/修订 tasks 清单。设计已批准后。"
     workflow: sdd
     model: inherit
@@ -142,7 +147,7 @@ roles:
     title: 特性开发工程师
     soul_dir: souls/spec/impl
     agent_file: .cursor/agents/spec-impl.md
-    claude_file: .claude/agents/sdd/spec-impl.md
+    claude_file: .claude/agents/sdd/spec-impl.md # handwritten until compile --target claude (P2)
     description: "特性开发工程师：按 tasks.md 的 task_id 实现代码。可与 spec-test 并行。"
     workflow: sdd
     model: inherit
@@ -156,7 +161,7 @@ roles:
     title: 测试工程师
     soul_dir: souls/spec/test
     agent_file: .cursor/agents/spec-test.md
-    claude_file: .claude/agents/sdd/spec-test.md
+    claude_file: .claude/agents/sdd/spec-test.md # handwritten until compile --target claude (P2)
     description: "测试工程师：按规格验证与补测试。可与 spec-impl 并行。"
     workflow: sdd
     model: inherit
@@ -170,19 +175,21 @@ roles:
     title: 技术评审委员
     soul_dir: souls/spec/judge
     agent_file: .cursor/agents/spec-judge.md
-    claude_file: .claude/agents/sdd/spec-judge.md
+    claude_file: .claude/agents/sdd/spec-judge.md # handwritten until compile --target claude (P2)
     description: "技术评审委员：对照 Spec 五问裁决 GO/REVISE/STOP。多关卡（需求/设计/任务后）。"
     workflow: sdd
     model: inherit
     readonly: true
     mission_template: templates/mission/spec-judge.mission.md
-    adversary_of: []
+    adversary_of: [orchestrator]
     debate_mode: judge-verdict
 
   # ─── 横切岗位 P2 ───
   security-reviewer:
     title: 安全工程师
     extends: reviewer
+    soul_dir: souls/security-reviewer
+    agent_file: .cursor/agents/security-reviewer.md
     description: "安全工程师：信任边界、注入、密钥、加密。"
     readonly: true
     mission_template: templates/mission/security-reviewer.mission.md
@@ -194,6 +201,8 @@ roles:
   architecture-reviewer:
     title: 架构评审工程师
     extends: reviewer
+    soul_dir: souls/architecture-reviewer
+    agent_file: .cursor/agents/architecture-reviewer.md
     description: "架构评审工程师：LAYERS、模式、重复抽象、接口设计。"
     readonly: true
     mission_template: templates/mission/architecture-reviewer.mission.md
@@ -205,6 +214,8 @@ roles:
   impact-reviewer:
     title: 变更影响分析师
     extends: reviewer
+    soul_dir: souls/impact-reviewer
+    agent_file: .cursor/agents/impact-reviewer.md
     description: "变更影响分析师：破坏性 API、依赖方、迁移路径。"
     readonly: true
     mission_template: templates/mission/impact-reviewer.mission.md
@@ -216,6 +227,8 @@ roles:
   observability-reviewer:
     title: 可观测性工程师
     extends: reviewer
+    soul_dir: souls/observability-reviewer
+    agent_file: .cursor/agents/observability-reviewer.md
     description: "可观测性工程师：日志、指标、追踪、告警。"
     readonly: true
     mission_template: templates/mission/observability-reviewer.mission.md
@@ -227,6 +240,8 @@ roles:
   solution-fit-challenger:
     title: 方案评审工程师
     extends: reviewer
+    soul_dir: souls/solution-fit-challenger
+    agent_file: .cursor/agents/solution-fit-challenger.md
     description: "方案评审工程师：挑战方案合理性（实现正确但方向错）。"
     readonly: true
     mission_template: templates/mission/solution-fit-challenger.mission.md
@@ -235,9 +250,35 @@ roles:
     specialization: "方案合理性、产品方向对齐、技术决策权衡"
     phase: P2
 
+  documentation-reviewer:
+    title: 文档审查工程师
+    soul_dir: souls/documentation-reviewer
+    agent_file: .cursor/agents/documentation-reviewer.md
+    description: "文档审查工程师：内容准确性、完整性、可用性、可运行示例验证。doc-gardener 日落后的接替角色。"
+    readonly: true
+    mission_template: templates/mission/documentation-reviewer.mission.md
+    adversary_of: [implementer, spec-impl]
+    debate_mode: kill-findings
+    phase: P2
+
+  performance-reviewer:
+    title: 性能工程师
+    extends: reviewer
+    soul_dir: souls/performance-reviewer
+    agent_file: .cursor/agents/performance-reviewer.md
+    description: "性能工程师：N+1、热路径复杂度、内存泄漏、阻塞 I/O、大 payload。"
+    readonly: true
+    mission_template: templates/mission/performance-reviewer.mission.md
+    adversary_of: [implementer, spec-impl]
+    debate_mode: kill-findings
+    specialization: "查询效率、热路径优化、内存管理、异步阻塞检查"
+    phase: P2
+
   # ─── 交付岗位 P2 ───
   product-clarifier:
     title: 产品经理
+    soul_dir: souls/product-clarifier
+    agent_file: .cursor/agents/product-clarifier.md
     description: "产品经理：Spec 五问前的需求澄清与 scope 收敛。"
     readonly: false
     mission_template: templates/mission/product-clarifier.mission.md
@@ -247,6 +288,8 @@ roles:
 
   ci-investigator:
     title: CI 工程师
+    soul_dir: souls/ci-investigator
+    agent_file: .cursor/agents/ci-investigator.md
     description: "CI 工程师：单条 check 失败根因与修复建议。"
     readonly: true
     mission_template: templates/mission/ci-investigator.mission.md
@@ -256,6 +299,8 @@ roles:
 
   pr-shepherd:
     title: 发布工程师
+    soul_dir: souls/pr-shepherd
+    agent_file: .cursor/agents/pr-shepherd.md
     description: "发布工程师：PR 至 merge-ready（CI、评论、冲突、权限）。"
     readonly: true
     mission_template: templates/mission/pr-shepherd.mission.md
@@ -265,9 +310,11 @@ roles:
 
   moderator:
     title: 评审主席
+    soul_dir: souls/moderator
+    agent_file: .cursor/agents/moderator.md
     description: "评审主席：多审查意见汇总去重、输出统一 checklist。"
     readonly: true
     mission_template: templates/mission/moderator.mission.md
-    adversary_of: [reviewer]
+    adversary_of: [reviewer, pr-shepherd]
     debate_mode: judge-verdict
     phase: P2
