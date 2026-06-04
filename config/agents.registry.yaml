@@ -40,7 +40,7 @@ roles:
     title: 开发工程师
     soul_dir: souls/implementer
     agent_file: .cursor/agents/implementer.md
-    description: "开发工程师：实现与修 bug。已有明确规格或任务单时使用。"
+    description: "开发工程师：ad-hoc 实现与修 bug。已有明确规格或 exec-plan 时使用。"
     model: inherit
     readonly: false
     mission_template: templates/mission/implementer.mission.md
@@ -122,7 +122,7 @@ roles:
     model: inherit
     readonly: false
     mission_template: templates/mission/spec-design.mission.md
-    adversary_of: [spec-judge, solution-fit-challenger]
+    adversary_of: [spec-judge, solution-fit-challenger, architecture-reviewer]
     debate_mode: judge-verdict
 
   spec-tasks:
@@ -135,7 +135,7 @@ roles:
     model: inherit
     readonly: false
     mission_template: templates/mission/spec-tasks.mission.md
-    adversary_of: [spec-judge, implementer]
+    adversary_of: [spec-judge, implementer, impact-reviewer]
     debate_mode: judge-verdict
 
   spec-impl:
@@ -148,7 +148,7 @@ roles:
     model: inherit
     readonly: false
     mission_template: templates/mission/spec-impl.mission.md
-    adversary_of: [reviewer, test-writer]
+    adversary_of: [reviewer, test-writer, security-reviewer]
     debate_mode: kill-findings
     can_parallel_with: [spec-test]
 
@@ -171,7 +171,7 @@ roles:
     soul_dir: souls/spec/judge
     agent_file: .cursor/agents/spec-judge.md
     claude_file: .claude/agents/sdd/spec-judge.md
-    description: "技术评审委员：对照 Spec 五问裁决 GO/REVISE/STOP。"
+    description: "技术评审委员：对照 Spec 五问裁决 GO/REVISE/STOP。多关卡（需求/设计/任务后）。"
     workflow: sdd
     model: inherit
     readonly: true
@@ -241,7 +241,7 @@ roles:
     description: "产品经理：Spec 五问前的需求澄清与 scope 收敛。"
     readonly: false
     mission_template: templates/mission/product-clarifier.mission.md
-    adversary_of: [orchestrator]
+    adversary_of: [orchestrator, spec-requirements]
     debate_mode: judge-verdict
     phase: P2
 
@@ -250,24 +250,24 @@ roles:
     description: "CI 工程师：单条 check 失败根因与修复建议。"
     readonly: true
     mission_template: templates/mission/ci-investigator.mission.md
-    adversary_of: [implementer]
+    adversary_of: [implementer, spec-impl]
     debate_mode: kill-findings
     phase: P2
 
   pr-shepherd:
     title: 发布工程师
-    description: "发布工程师：PR 至 merge-ready（CI、评论、冲突）。"
+    description: "发布工程师：PR 至 merge-ready（CI、评论、冲突、权限）。"
     readonly: true
     mission_template: templates/mission/pr-shepherd.mission.md
-    adversary_of: [reviewer]
+    adversary_of: [reviewer, moderator]
     debate_mode: cross-exam
     phase: P2
 
   moderator:
     title: 评审主席
-    description: "评审主席：多审查意见去重与统一 checklist。禁止写代码。"
+    description: "评审主席：多审查意见汇总去重、输出统一 checklist。"
     readonly: true
     mission_template: templates/mission/moderator.mission.md
-    adversary_of: []
+    adversary_of: [reviewer]
     debate_mode: judge-verdict
     phase: P2
