@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.local
+.DS_Store
+*.log
+artifacts/progress/*
+artifacts/dag-runs/*
+!artifacts/progress/.gitkeep
+!artifacts/dag-runs/.gitkeep

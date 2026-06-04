@@ -1,0 +1,26 @@
+routing:
+  by_role:
+    reviewer:
+      prefer: [cursor]
+      model: inherit
+    explore:
+      prefer: [cursor]
+      model: inherit
+    implementer:
+      prefer: [cursor]
+      model: inherit
+  by_complexity:
+    HIGH:
+      provider: cursor
+      model: inherit
+    MED:
+      provider: cursor
+      model: inherit
+    LOW:
+      provider: cursor
+      model: inherit
+
+budget:
+  max_steps_per_task: 40
+  max_tokens_per_task: 200000
+  max_duration_ms: 1800000

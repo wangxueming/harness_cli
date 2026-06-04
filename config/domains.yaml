@@ -1,0 +1,12 @@
+domains:
+  demo-domain:
+    paths:
+      - "packages/demo-domain/**"
+    layers_root: packages/demo-domain/src
+    policy: policy/domains/demo-domain.md
+    agents:
+      - implementer
+      - reviewer
+      - test-writer
+    spec_prefix: docs/exec-plans/active/demo-domain
+    ci_boundary_job: true

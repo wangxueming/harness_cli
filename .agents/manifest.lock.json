@@ -1,0 +1,19 @@
+{
+  "target": "cursor",
+  "generated_at": "2026-06-04T02:38:44.637Z",
+  "agents": [
+    ".cursor/agents/orchestrator.md",
+    ".cursor/agents/explore.md",
+    ".cursor/agents/implementer.md",
+    ".cursor/agents/reviewer.md",
+    ".cursor/agents/test-writer.md",
+    ".cursor/agents/doc-gardener.md",
+    ".cursor/agents/harness-auditor.md",
+    ".cursor/agents/spec-requirements.md",
+    ".cursor/agents/spec-design.md",
+    ".cursor/agents/spec-tasks.md",
+    ".cursor/agents/spec-impl.md",
+    ".cursor/agents/spec-test.md",
+    ".cursor/agents/spec-judge.md"
+  ]
+}

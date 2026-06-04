@@ -1,0 +1,27 @@
+default_provider: cursor
+
+providers:
+  cursor:
+    enabled: true
+    env: CURSOR_API_KEY
+    discover_models: cursor_sdk_list
+    adapters:
+      - .cursor/agents
+      - .cursor/rules
+      - .cursor/mcp.json
+
+  anthropic:
+    enabled: false
+    env: ANTHROPIC_API_KEY
+    discover_models: static_catalog
+    adapters:
+      - .claude/agents
+      - CLAUDE.md
+
+  codex:
+    enabled: false
+    env: OPENAI_API_KEY
+    discover_models: static_catalog
+    adapters:
+      - .codex/agents
+      - AGENTS.md

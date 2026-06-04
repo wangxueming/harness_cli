@@ -1,0 +1,12 @@
+---
+description: Architecture layers for demo-domain
+globs: packages/demo-domain/**
+alwaysApply: false
+---
+
+# Layers
+
+Dependency flow: types → config → repo → service → runtime → ui.
+Cross-cutting: `providers/` only.
+
+See `docs/architecture/LAYERS.md` and `policy/layers.yaml`.

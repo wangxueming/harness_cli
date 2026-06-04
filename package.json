@@ -1,0 +1,26 @@
+{
+  "name": "harness-template",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter demo-domain dev",
+    "test": "vitest run",
+    "test:boundary": "vitest run tests/architecture-boundary.test.ts",
+    "lint": "eslint .",
+    "harness": "tsx tools/harness-cli/src/main.ts",
+    "agents:compile": "pnpm harness compile --target cursor",
+    "agents:validate": "pnpm harness validate-souls",
+    "check": "pnpm lint && pnpm test && pnpm harness check"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@types/node": "^22.15.0",
+    "eslint": "^9.28.0",
+    "globals": "^16.2.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.0",
+    "vitest": "^3.2.0",
+    "yaml": "^2.8.0"
+  }
+}

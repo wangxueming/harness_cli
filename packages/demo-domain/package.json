@@ -1,0 +1,14 @@
+{
+  "name": "demo-domain",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.4",
+    "vitest": "^3.2.0"
+  }
+}

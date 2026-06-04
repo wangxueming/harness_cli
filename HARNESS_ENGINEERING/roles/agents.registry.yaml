@@ -1,0 +1,257 @@
+# Harness 完整团队注册表（蓝图）
+# 岗位显示名与说明：本文件 title / description（单源）
+# 落地：与仓库根 config/agents.registry.yaml 保持同步
+
+version: 1
+
+defaults:
+  model: inherit
+  compile_mode: generated
+
+debate_modes:
+  kill-findings: "审查岗位提 finding；开发岗位用代码路径反驳 → VALID/INVALID/AMBIGUOUS"
+  cross-exam: "Round2 各岗位 validate/challenge 他人 findings"
+  judge-verdict: "技术评审委员 → GO/REVISE/STOP"
+  score: "按 criterion 1-10 打分，<7 打回"
+
+roles:
+  # ─── 工程岗位 P1 ───
+  orchestrator:
+    title: 技术负责人
+    soul_dir: souls/orchestrator
+    agent_file: .cursor/agents/orchestrator.md
+    description: "技术负责人：拆任务、委派岗位、汇总。需求模糊或跨多岗位时使用。"
+    readonly: false
+    mission_template: templates/mission/orchestrator.mission.md
+    adversary_of: [spec-judge]
+    debate_mode: judge-verdict
+    domains: ["*"]
+
+  explore:
+    title: 技术调研工程师
+    soul_dir: souls/explore
+    agent_file: .cursor/agents/explore.md
+    description: "技术调研工程师：只读探索代码库、分层与依赖。"
+    readonly: true
+    mission_template: templates/mission/explore.mission.md
+    adversary_of: [reviewer]
+    debate_mode: cross-exam
+    domains: ["*"]
+
+  implementer:
+    title: 开发工程师
+    soul_dir: souls/implementer
+    agent_file: .cursor/agents/implementer.md
+    description: "开发工程师：实现与修 bug。已有明确规格或任务单时使用。"
+    readonly: false
+    mission_template: templates/mission/implementer.mission.md
+    adversary_of: [reviewer, harness-auditor]
+    debate_mode: kill-findings
+    domains: ["*"]
+
+  reviewer:
+    title: 代码审查工程师
+    soul_dir: souls/reviewer
+    agent_file: .cursor/agents/reviewer.md
+    claude_file: .claude/agents/reviewer.md
+    codex_file: .codex/agents/reviewer.md
+    description: "代码审查工程师：安全与架构审查。auth/支付/对外 API 变更时使用。"
+    readonly: true
+    mission_template: templates/mission/reviewer.mission.md
+    adversary_of: [implementer]
+    debate_mode: kill-findings
+    domains: ["*"]
+
+  test-writer:
+    title: 测试开发工程师
+    soul_dir: souls/test-writer
+    agent_file: .cursor/agents/test-writer.md
+    description: "测试开发工程师：补充行为测试与边界测试。"
+    readonly: false
+    mission_template: templates/mission/test-writer.mission.md
+    adversary_of: [reviewer]
+    debate_mode: cross-exam
+    domains: ["*"]
+
+  doc-gardener:
+    title: 文档工程师
+    soul_dir: souls/doc-gardener
+    agent_file: .cursor/agents/doc-gardener.md
+    description: "文档工程师：对照 AGENTS 地图扫描 stale 文档与断链。"
+    readonly: true
+    mission_template: templates/mission/doc-gardener.mission.md
+    adversary_of: [spec-judge]
+    debate_mode: judge-verdict
+    domains: ["*"]
+
+  harness-auditor:
+    title: 架构治理工程师
+    soul_dir: souls/harness-auditor
+    agent_file: .cursor/agents/harness-auditor.md
+    description: "架构治理工程师：解读分层边界、GC、harness check。"
+    readonly: true
+    mission_template: templates/mission/harness-auditor.mission.md
+    adversary_of: [implementer]
+    debate_mode: kill-findings
+    domains: ["*"]
+
+  # ─── SDD 规格岗位 P1 ───
+  spec-requirements:
+    title: 需求分析师
+    soul_dir: souls/spec/requirements
+    agent_file: .cursor/agents/spec-requirements.md
+    claude_file: .claude/agents/sdd/spec-requirements.md
+    description: "需求分析师：编写/修订 requirements（EARS）。SDD 第一步。"
+    workflow: sdd
+    readonly: false
+    mission_template: templates/mission/spec-requirements.mission.md
+    adversary_of: [spec-judge]
+    debate_mode: judge-verdict
+
+  spec-design:
+    title: 系统架构师
+    soul_dir: souls/spec/design
+    agent_file: .cursor/agents/spec-design.md
+    claude_file: .claude/agents/sdd/spec-design.md
+    description: "系统架构师：编写/修订 design。需求已批准后。"
+    workflow: sdd
+    readonly: false
+    mission_template: templates/mission/spec-design.mission.md
+    adversary_of: [spec-judge, solution-fit-challenger]
+    debate_mode: judge-verdict
+
+  spec-tasks:
+    title: 迭代规划师
+    soul_dir: souls/spec/tasks
+    agent_file: .cursor/agents/spec-tasks.md
+    claude_file: .claude/agents/sdd/spec-tasks.md
+    description: "迭代规划师：编写/修订 tasks 清单。设计已批准后。"
+    workflow: sdd
+    readonly: false
+    mission_template: templates/mission/spec-tasks.mission.md
+    adversary_of: [spec-judge, implementer]
+    debate_mode: judge-verdict
+
+  spec-impl:
+    title: 特性开发工程师
+    soul_dir: souls/spec/impl
+    agent_file: .cursor/agents/spec-impl.md
+    claude_file: .claude/agents/sdd/spec-impl.md
+    description: "特性开发工程师：按 tasks.md 的 task_id 实现代码。"
+    workflow: sdd
+    readonly: false
+    mission_template: templates/mission/spec-impl.mission.md
+    adversary_of: [reviewer, test-writer]
+    debate_mode: kill-findings
+
+  spec-test:
+    title: 测试工程师
+    soul_dir: souls/spec/test
+    agent_file: .cursor/agents/spec-test.md
+    claude_file: .claude/agents/sdd/spec-test.md
+    description: "测试工程师：按规格验证与补测试。"
+    workflow: sdd
+    readonly: false
+    mission_template: templates/mission/spec-test.mission.md
+    adversary_of: [reviewer]
+    debate_mode: cross-exam
+
+  spec-judge:
+    title: 技术评审委员
+    soul_dir: souls/spec/judge
+    agent_file: .cursor/agents/spec-judge.md
+    claude_file: .claude/agents/sdd/spec-judge.md
+    description: "技术评审委员：对照 Spec 五问裁决 GO/REVISE/STOP。"
+    workflow: sdd
+    readonly: true
+    mission_template: templates/mission/spec-judge.mission.md
+    adversary_of: []
+    debate_mode: judge-verdict
+
+  # ─── 横切岗位 P2 ───
+  security-reviewer:
+    title: 安全工程师
+    extends: reviewer
+    description: "安全工程师：信任边界、注入、密钥。"
+    readonly: true
+    mission_template: templates/mission/security-reviewer.mission.md
+    adversary_of: [implementer]
+    debate_mode: kill-findings
+    phase: P2
+
+  architecture-reviewer:
+    title: 架构评审工程师
+    extends: reviewer
+    description: "架构评审工程师：LAYERS、模式、重复抽象。"
+    readonly: true
+    mission_template: templates/mission/architecture-reviewer.mission.md
+    adversary_of: [implementer]
+    debate_mode: kill-findings
+    phase: P2
+
+  impact-reviewer:
+    title: 变更影响分析师
+    extends: reviewer
+    description: "变更影响分析师：破坏性 API、依赖方、迁移。"
+    readonly: true
+    mission_template: templates/mission/impact-reviewer.mission.md
+    adversary_of: [implementer]
+    debate_mode: kill-findings
+    phase: P2
+
+  observability-reviewer:
+    title: 可观测性工程师
+    extends: reviewer
+    description: "可观测性工程师：日志、指标、追踪、告警。"
+    readonly: true
+    mission_template: templates/mission/observability-reviewer.mission.md
+    adversary_of: [implementer]
+    debate_mode: kill-findings
+    phase: P2
+
+  solution-fit-challenger:
+    title: 方案评审工程师
+    extends: reviewer
+    description: "方案评审工程师：挑战方案合理性（实现正确但方向错）。"
+    readonly: true
+    mission_template: templates/mission/solution-fit-challenger.mission.md
+    adversary_of: [spec-design, implementer]
+    debate_mode: cross-exam
+    phase: P2
+
+  # ─── 交付岗位 P2 ───
+  product-clarifier:
+    title: 产品经理
+    description: "产品经理：Spec 五问前的需求澄清与 scope 收敛。"
+    readonly: false
+    mission_template: templates/mission/product-clarifier.mission.md
+    adversary_of: [orchestrator]
+    debate_mode: judge-verdict
+    phase: P2
+
+  ci-investigator:
+    title: CI 工程师
+    description: "CI 工程师：单条 check 失败根因与修复建议。"
+    readonly: true
+    mission_template: templates/mission/ci-investigator.mission.md
+    adversary_of: [implementer]
+    debate_mode: kill-findings
+    phase: P2
+
+  pr-shepherd:
+    title: 发布工程师
+    description: "发布工程师：PR 至 merge-ready（CI、评论、冲突）。"
+    readonly: true
+    mission_template: templates/mission/pr-shepherd.mission.md
+    adversary_of: [reviewer]
+    debate_mode: cross-exam
+    phase: P2
+
+  moderator:
+    title: 评审主席
+    description: "评审主席：多审查意见去重与统一 checklist。禁止写代码。"
+    readonly: true
+    mission_template: templates/mission/moderator.mission.md
+    adversary_of: []
+    debate_mode: judge-verdict
+    phase: P2

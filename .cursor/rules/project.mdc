@@ -1,0 +1,12 @@
+---
+description: Global harness discipline (T1). NEVER rules and pointers.
+alwaysApply: true
+---
+
+# Project rules
+
+Read `AGENTS.md` first. Obey `policy/never-do.md`.
+
+- Do not edit generated files under `.cursor/agents/`.
+- Run `pnpm harness check` before claiming work is done.
+- Spec work lives under `docs/exec-plans/active/`.

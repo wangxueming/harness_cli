@@ -1,0 +1,7 @@
+---
+description: demo-domain package rules
+globs: packages/demo-domain/**
+alwaysApply: false
+---
+
+See `policy/domains/demo-domain.md`.
