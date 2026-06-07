@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache" />
+  <title>TwentyFour · 原版 UI 像素还原</title>
+  <style>
+    :root {
+      --phone-w: 320px;
+      --phone-h: 480px;
+      --scale: clamp(1.2, 2.8vw + 0.6rem, 1.55);
+      --frame-w: calc(var(--phone-w) * var(--scale));
+      --frame-h: calc(var(--phone-h) * var(--scale));
+      --bg-page: #1a1a2e;
+      --accent: #f4c430;
+      --text: #eee;
+      --muted: #8892b0;
+      --ink: #00397c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+      background: var(--bg-page); color: var(--text); min-height: 100vh;
+    }
+    header { padding: 24px 32px 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    header h1 { font-size: 1.5rem; font-weight: 600; color: var(--accent); }
+    header p { margin-top: 6px; color: var(--muted); font-size: .9rem; }
+    nav {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 16px 32px; position: sticky; top: 0;
+      background: rgba(26,26,46,.95); backdrop-filter: blur(8px);
+      z-index: 100; border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    nav button {
+      padding: 8px 14px; border: 1px solid rgba(244,196,48,.35);
+      background: transparent; color: var(--text); border-radius: 20px;
+      cursor: pointer; font-size: .85rem; transition: all .15s;
+    }
+    nav button:hover { background: rgba(244,196,48,.12); }
+    nav button.active { background: var(--accent); color: #1a1a2e; border-color: var(--accent); font-weight: 600; }
+    main {
+      padding: 32px 24px 48px; display: flex; flex-wrap: wrap; gap: 40px;
+      justify-content: center; align-items: flex-start;
+    }
+    main:not(.gallery-all) { min-height: calc(100vh - 220px); align-items: center; }
+    main.gallery-all {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(calc(var(--frame-w) + 48px), 1fr));
+      gap: 28px; width: 100%; max-width: 1480px; margin: 0 auto;
+    }
+    .screen-block {
+      display: none; flex-direction: column; align-items: center; gap: 10px;
+      padding: 16px 12px 20px; border-radius: 16px;
+      background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06);
+    }
+    .screen-block.visible { display: flex; }
+    main.gallery-all .screen-block.visible { display: flex !important; }
+    .screen-block h2 { font-size: 1rem; font-weight: 500; color: var(--muted); }
+    .screen-block .desc {
+      max-width: calc(var(--frame-w) + 40px); text-align: center;
+      font-size: .82rem; color: var(--muted); line-height: 1.5;
+    }
+    .phone {
+      width: var(--frame-w); height: var(--frame-h); border-radius: 28px; overflow: hidden;
+      box-shadow: 0 0 0 3px #333, 0 0 0 6px #111, 0 24px 48px rgba(0,0,0,.5);
+      position: relative; background: #000;
+    }
+    .phone::before {
+      content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 80px; height: 18px; background: #111; border-radius: 0 0 12px 12px;
+      z-index: 999; pointer-events: none;
+    }
+    .screen {
+      width: var(--phone-w); height: var(--phone-h);
+      transform: scale(var(--scale)); transform-origin: top left;
+      position: relative; overflow: hidden;
+    }
+    .screen img, .screen .card-num, .screen .nib-label, .screen .ref-shot {
+      position: absolute;
+      image-rendering: pixelated; image-rendering: crisp-edges;
+    }
+    .screen img { user-select: none; pointer-events: none; }
+    .screen .btn-img { pointer-events: auto; cursor: pointer; }
+    .screen .btn-img.pressed { opacity: .78; filter: brightness(.93); }
+    .z-bg { z-index: 0; } .z-panel { z-index: 5; } .z-ui { z-index: 10; } .z-top { z-index: 20; }
+    .nib-label {
+      font-family: "Marker Felt", "Chalkboard SE", "Comic Sans MS", cursive;
+      font-weight: bold; pointer-events: none;
+    }
+    .card-num {
+      display: flex; align-items: center; justify-content: center;
+      font-family: "Marker Felt", "Chalkboard SE", cursive;
+      font-size: 44px; font-weight: bold; color: #fff;
+      text-shadow: 1px 1px 0 rgba(0,0,0,.35);
+      background-size: contain; background-repeat: no-repeat; background-position: center;
+      z-index: 12;
+    }
+    .card-num.blue { background-image: url("assets-web/play_number_blue.png"); }
+    .card-num.green { background-image: url("assets-web/play_number_green.png"); }
+    .card-num.yellow { background-image: url("assets-web/play_number_yellow.png"); }
+    .card-num.merged { z-index: 12; }
+    .card-num.merged .card-main { display: block; }
+    .card-num.merged .card-expr { display: block; pointer-events: none; }
+    .block-actions { display: flex; gap: 8px; justify-content: center; }
+    .ref-preview-btn {
+      padding: 6px 14px; border: 1px solid rgba(136,146,176,.45);
+      background: rgba(255,255,255,.04); color: var(--muted); border-radius: 16px;
+      cursor: pointer; font-size: .78rem;
+    }
+    .ref-preview-btn:hover { color: var(--accent); border-color: rgba(244,196,48,.45); }
+    .overlay-toggle {
+      padding: 6px 14px; border: 1px solid rgba(244,196,48,.35);
+      background: transparent; color: var(--muted); border-radius: 16px;
+      cursor: pointer; font-size: .78rem;
+    }
+    .overlay-toggle:hover { color: var(--accent); border-color: rgba(244,196,48,.55); }
+    .overlay-toggle.active {
+      background: rgba(244,196,48,.15); color: var(--accent); border-color: var(--accent);
+    }
+    .ref-underlay {
+      left: 0; top: 0; width: 320px; height: 480px;
+      object-fit: cover; object-position: top; z-index: 900;
+      opacity: 0; pointer-events: none; transition: opacity .15s;
+    }
+    .screen.overlay-on .ref-underlay { opacity: 0.45; }
+    #original.visible { width: 100%; max-width: 1480px; }
+    .original-gallery { display: flex; flex-direction: column; gap: 20px; width: 100%; }
+    .original-item {
+      display: flex; flex-direction: row; align-items: flex-start; gap: 20px;
+      width: 100%; padding: 16px 18px; border-radius: 14px;
+      background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06);
+    }
+    .original-item .phone { flex-shrink: 0; }
+    .original-info { flex: 1; min-width: 0; padding-top: 6px; }
+    .original-info .idx { font-size: .72rem; color: rgba(136,146,176,.75); margin-bottom: 4px; }
+    .original-info h3 { font-size: 1.05rem; color: var(--accent); margin-bottom: 8px; }
+    .original-info p { font-size: .86rem; color: var(--muted); line-height: 1.65; }
+    .original-info .file-id { font-size: .72rem; color: rgba(136,146,176,.6); font-family: monospace; margin-top: 10px; display: inline-block; }
+    .screen .original-full, .screen .ref-shot {
+      left: 0; top: 0; width: 320px; height: 480px; object-fit: cover; object-position: top;
+    }
+    .lightbox {
+      display: none; position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,.88); flex-direction: column; align-items: center;
+      justify-content: center; gap: 16px; padding: 24px;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img { max-width: min(640px, 92vw); max-height: calc(100vh - 120px); border-radius: 12px; }
+    .lightbox-bar { display: flex; align-items: center; gap: 12px; }
+    .lightbox-bar button {
+      padding: 8px 16px; border: 1px solid rgba(244,196,48,.4);
+      background: rgba(244,196,48,.1); color: var(--text); border-radius: 18px; cursor: pointer;
+    }
+    footer { text-align: center; padding: 32px; color: var(--muted); font-size: .8rem; }
+    footer code { background: rgba(255,255,255,.08); padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>TwentyFour · 原版 UI 像素还原</h1>
+  <p>坐标来自 IPA NIB UILabel + iPod 截图像素校准 · 320×480 · 文字框 flex 垂直居中 · 每页可「叠加原版」</p>
+</header>
+<nav id="nav">
+  <button class="active" data-target="all">全部概览</button>
+  <button data-target="menu">主菜单</button>
+  <button data-target="mode">模式选择</button>
+  <button data-target="ref-email">参考</button>
+  <button data-target="p2p-wait">联机</button>
+  <button data-target="p2p-error">联机</button>
+  <button data-target="play-free">做题页</button>
+  <button data-target="speed-intro">Speed Play 说明</button>
+  <button data-target="play-speed">Speed Play</button>
+  <button data-target="play-selected">选中态</button>
+  <button data-target="play-merge">合并</button>
+  <button data-target="play-pause">暂停</button>
+  <button data-target="play-menu">做题页</button>
+  <button data-target="solution">索要答案</button>
+  <button data-target="ref-keyboard">参考</button>
+  <button data-target="settings">设置</button>
+  <button data-target="scores">好友分数</button>
+  <button data-target="help">帮助</button>
+  <button data-target="help-6">帮助</button>
+  <button data-target="play-free-150">合并150</button>
+  <button data-target="play-free-neg84">合并-84</button>
+  <button data-target="play-free-partial">两牌态</button>
+  <button data-target="original">原版截图</button>
+</nav>
+<main id="main" class="gallery-all">
+  <section class="screen-block visible" id="menu" data-ref-index="0">
+    <h2>主菜单 · MenuViewController</h2>
+    <p class="desc">Logo + Play / Settings / Statistics / Help · 截图校准</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="0">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0021.PNG" alt="" data-ref-shot="IMG_0021.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <img class="z-ui" src="assets-web/logo.png" alt="" style="left:72px;top:18px;width:196px;height:192px;" />
+      <img class="btn-img z-ui" src="assets-web/menu_play_up.png" alt="Play" style="left:50px;top:216px;width:223px;height:51px;" />
+      <img class="btn-img z-ui" src="assets-web/menu_settings_up.png" alt="Settings" style="left:50px;top:270px;width:223px;height:51px;" />
+      <img class="btn-img z-ui" src="assets-web/menu_stats_up.png" alt="Stats" style="left:50px;top:324px;width:223px;height:51px;" />
+      <img class="btn-img z-ui" src="assets-web/menu_help_up.png" alt="Help" style="left:50px;top:380px;width:223px;height:51px;" />
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="mode" data-ref-index="1">
+    <h2>模式选择 · GameModeViewController</h2>
+    <p class="desc">GAME MODES · NIB + 截图校准</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="1">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0022.PNG" alt="" data-ref-shot="IMG_0022.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <span class="nib-label z-ui" style="left:198px;top:20px;width:102px;height:20px;font-size:11px;color:#888888;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">GAME MODES</span>
+      <img class="z-ui" src="assets-web/play_solo_blue.png" alt="" style="left:30px;top:51px;width:34px;height:23px;" />
+      <span class="nib-label z-ui" style="left:65px;top:50px;width:110px;height:25px;font-size:11px;color:#888888;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Single player</span>
+      <img class="btn-img" src="assets-web/free_play_yellow_up.png" alt="Free Play" style="left:72px;top:82px;width:229px;height:54px;" />
+      <img class="btn-img" src="assets-web/speed_play_yellow_up.png" alt="Speed Play" style="left:70px;top:146px;width:229px;height:54px;" />
+      <img class="z-ui" src="assets-web/play_multi_icon.png" alt="" style="left:30px;top:229px;width:34px;height:23px;" />
+      <span class="nib-label z-ui" style="left:68px;top:228px;width:112px;height:25px;font-size:11px;color:#888888;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Multi-player</span>
+      <img class="btn-img" src="assets-web/host_game_yellow2_up.png" alt="Host a Game" style="left:70px;top:262px;width:229px;height:54px;" />
+      <img class="btn-img" src="assets-web/join_game_yellow2_up.png" alt="Join a Game" style="left:70px;top:326px;width:229px;height:54px;" />
+      <img class="btn-img" src="assets-web/mode_back_up.png" alt="BACK" style="left:36px;top:402px;width:79px;height:47px;" />
+      <img class="btn-img" src="assets-web/invite_friends_up.png" alt="Invite Friends" style="left:122px;top:402px;width:176px;height:47px;" />
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="ref-email" data-ref-index="2">
+    <h2>参考 · 邀请邮件</h2>
+    <p class="desc">iOS 系统 MFMailCompose · 无 IPA 素材，嵌入原版截图</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="2">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      
+      <img class="ref-shot z-bg" src="original-screenshots/IMG_0023.PNG" alt="邀请邮件" style="left:0;top:0;width:320px;height:480px;object-fit:cover;" />
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="p2p-wait" data-ref-index="3">
+    <h2>联机 · 等待玩家</h2>
+    <p class="desc">PeerViewController · Waiting for players…</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="3">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0024.PNG" alt="" data-ref-shot="IMG_0024.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <img class="z-ui" src="assets-web/play_multi_icon.png" alt="" style="left:143px;top:21px;width:34px;height:23px;" />
+      <span class="nib-label z-ui" style="left:197px;top:20px;width:93px;height:20px;font-size:11px;color:#888888;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">PEER TO PEER</span>
+      <span class="nib-label z-ui" style="left:33px;top:128px;width:260px;height:40px;font-size:18px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1;box-sizing:border-box;">Waiting for players...</span>
+      <span class="nib-label z-ui" style="left:62px;top:289px;width:200px;height:21px;font-size:11px;color:#c86b1a;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1;box-sizing:border-box;">- please wait -</span>
+      <img class="btn-img" src="assets-web/button_blank_short_up.png" alt="Cancel" style="left:110px;top:328px;width:100px;height:40px;" />
+      <span class="nib-label z-ui" style="left:110px;top:328px;width:100px;height:40px;font-size:14px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;line-height:1;box-sizing:border-box;">Cancel</span>
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="p2p-error" data-ref-index="4">
+    <h2>联机 · 蓝牙不可用</h2>
+    <p class="desc">PeerViewController 错误提示</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="4">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0025.PNG" alt="" data-ref-shot="IMG_0025.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <img class="z-ui" src="assets-web/play_multi_icon.png" alt="" style="left:143px;top:21px;width:34px;height:23px;" />
+      <span class="nib-label z-ui" style="left:197px;top:20px;width:93px;height:20px;font-size:11px;color:#888888;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">PEER TO PEER</span>
+      <span class="nib-label z-ui" style="left:44px;top:110px;width:238px;height:65px;font-size:14px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.45;box-sizing:border-box;">Bluetooth is not available.<br/>Please enable it under phone<br/>settings.</span>
+      <img class="btn-img" src="assets-web/button_blank_short_up.png" alt="Ok" style="left:110px;top:328px;width:100px;height:40px;" />
+      <span class="nib-label z-ui" style="left:110px;top:328px;width:100px;height:40px;font-size:14px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;line-height:1;box-sizing:border-box;">Ok</span>
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="play-free" data-ref-index="5">
+    <h2>做题页 · Free Play</h2>
+    <p class="desc">Solved + 计时 · 截图校准 · 44×45 工具栏</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="5">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0026.PNG" alt="" data-ref-shot="IMG_0026.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <span class="nib-label z-ui" style="left:36px;top:22px;width:120px;height:18px;font-size:15px;color:#00397c;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Solved: 0</span>
+      <img class="z-ui" src="assets-web/play_solo_blue.png" alt="" style="left:147px;top:21px;width:34px;height:23px;" />
+      <span class="nib-label z-ui" style="left:205px;top:22px;width:105px;height:18px;font-size:15px;color:#00397c;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">5:45</span>
+      <div class="card-num blue" style="left:54px;top:71px;width:100px;height:100px;font-size:44px;">5</div>
+      <div class="card-num blue" style="left:176px;top:71px;width:100px;height:100px;font-size:44px;">10</div>
+      <div class="card-num blue" style="left:54px;top:195px;width:100px;height:100px;font-size:44px;">1</div>
+      <div class="card-num blue" style="left:176px;top:195px;width:100px;height:100px;font-size:44px;">6</div>
+      <img class="btn-img" src="assets-web/play_plus_up.png" alt="+" style="left:40px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_minus_up.png" alt="-" style="left:102px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_mult_up.png" alt="×" style="left:164px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_divide_up.png" alt="÷" style="left:226px;top:319px;width:60px;height:60px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:390px;width:264px;height:8px;" />
+      <img class="btn-img" src="assets-web/play_undo_up.png" alt="Undo" style="left:41px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_reset_up.png" alt="Reset" style="left:109px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_menu_up.png" alt="Menu" style="left:177px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_pass_up.png" alt="Pass" style="left:245px;top:404px;width:44px;height:45px;" />
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="speed-intro" data-ref-index="6">
+    <h2>Speed Play 说明</h2>
+    <p class="desc">MessageViewController · INSTRUCTIONS + START</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="6">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0027.PNG" alt="" data-ref-shot="IMG_0027.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <img class="z-ui" src="assets-web/play_speed_icon.png" alt="" style="left:147px;top:20px;width:34px;height:23px;" />
+      <span class="nib-label z-ui" style="left:73px;top:73px;width:175px;height:34px;font-size:17px;color:#c86b1a;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1;box-sizing:border-box;">INSTRUCTIONS</span>
+      <span class="nib-label z-ui" style="left:40px;top:115px;width:249px;height:165px;font-size:11px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.5;box-sizing:border-box;">Solve as many problems as you can before time runs out!<br/>Solve Bonus: +10 sec<br/>Pass Penalty: -20 sec</span>
+      <img class="z-ui" src="assets-web/settings_checkbox_off.png" alt="" style="left:83px;top:340px;width:32px;height:29px;" />
+      <span class="nib-label z-ui" style="left:126px;top:338px;width:121px;height:33px;font-size:11px;color:#00397c;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Don't show again</span>
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:383px;width:264px;height:8px;" />
+      <img class="btn-img" src="assets-web/button_menu_up.png" alt="MENU" style="left:40px;top:400px;width:86px;height:51px;" />
+      <img class="btn-img z-top" src="assets-web/button_blank_med_green.png" alt="START" style="left:134px;top:398px;width:158px;height:53px;" />
+      <span class="nib-label z-ui" style="left:134px;top:398px;width:158px;height:53px;font-size:17px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;line-height:1;box-sizing:border-box;">START!</span>
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="play-speed" data-ref-index="7">
+    <h2>做题页 · Speed Play</h2>
+    <p class="desc">Score + Pause · 截图校准</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="7">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0028.PNG" alt="" data-ref-shot="IMG_0028.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <span class="nib-label z-ui" style="left:36px;top:22px;width:120px;height:18px;font-size:15px;color:#00397c;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Score: 0</span>
+      <img class="z-ui" src="assets-web/play_speed_icon.png" alt="" style="left:147px;top:21px;width:34px;height:23px;" />
+      <img class="btn-img" src="assets-web/play_pause_blue.png" alt="Pause" style="left:222px;top:16px;width:29px;height:29px;" />
+      <span class="nib-label z-ui" style="left:205px;top:22px;width:105px;height:18px;font-size:15px;color:#00397c;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">2:58</span>
+      <div class="card-num blue" style="left:54px;top:71px;width:100px;height:100px;font-size:44px;">10</div>
+      <div class="card-num blue" style="left:176px;top:71px;width:100px;height:100px;font-size:44px;">13</div>
+      <div class="card-num blue" style="left:54px;top:195px;width:100px;height:100px;font-size:44px;">9</div>
+      <div class="card-num blue" style="left:176px;top:195px;width:100px;height:100px;font-size:44px;">3</div>
+      <img class="btn-img" src="assets-web/play_plus_up.png" alt="+" style="left:40px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_minus_up.png" alt="-" style="left:102px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_mult_up.png" alt="×" style="left:164px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_divide_up.png" alt="÷" style="left:226px;top:319px;width:60px;height:60px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:390px;width:264px;height:8px;" />
+      <img class="btn-img" src="assets-web/play_undo_up.png" alt="Undo" style="left:41px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_reset_up.png" alt="Reset" style="left:109px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_menu_up.png" alt="Menu" style="left:177px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_pass_up.png" alt="Pass" style="left:245px;top:404px;width:44px;height:45px;" />
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="play-selected" data-ref-index="8">
+    <h2>Speed Play · 选中态</h2>
+    <p class="desc">选中牌 10 与 + 运算符高亮</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="8">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0029.PNG" alt="" data-ref-shot="IMG_0029.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <span class="nib-label z-ui" style="left:36px;top:22px;width:120px;height:18px;font-size:15px;color:#00397c;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Score: 0</span>
+      <img class="z-ui" src="assets-web/play_speed_icon.png" alt="" style="left:147px;top:21px;width:34px;height:23px;" />
+      <img class="btn-img" src="assets-web/play_pause_blue.png" alt="Pause" style="left:222px;top:16px;width:29px;height:29px;" />
+      <span class="nib-label z-ui" style="left:205px;top:22px;width:105px;height:18px;font-size:15px;color:#00397c;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">2:53</span>
+      <div class="card-num yellow" style="left:54px;top:71px;width:100px;height:100px;font-size:44px;">10</div>
+      <div class="card-num blue" style="left:176px;top:71px;width:100px;height:100px;font-size:44px;">13</div>
+      <div class="card-num blue" style="left:54px;top:195px;width:100px;height:100px;font-size:44px;">9</div>
+      <div class="card-num blue" style="left:176px;top:195px;width:100px;height:100px;font-size:44px;">3</div>
+      <img class="btn-img" src="assets-web/play_plus_up.png" alt="+" style="left:40px;top:319px;width:60px;height:60px;filter:brightness(1.15);" />
+      <img class="btn-img" src="assets-web/play_minus_up.png" alt="-" style="left:102px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_mult_up.png" alt="×" style="left:164px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_divide_up.png" alt="÷" style="left:226px;top:319px;width:60px;height:60px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:390px;width:264px;height:8px;" />
+      <img class="btn-img" src="assets-web/play_undo_up.png" alt="Undo" style="left:41px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_reset_up.png" alt="Reset" style="left:109px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_menu_up.png" alt="Menu" style="left:177px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_pass_up.png" alt="Pass" style="left:245px;top:404px;width:44px;height:45px;" />
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="play-merge" data-ref-index="9">
+    <h2>Speed Play · 合并运算</h2>
+    <p class="desc">10+3=13 合并结果态 · 截图校准</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="9">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0030.PNG" alt="" data-ref-shot="IMG_0030.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <span class="nib-label z-ui" style="left:36px;top:22px;width:120px;height:18px;font-size:15px;color:#00397c;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Score: 0</span>
+      <img class="z-ui" src="assets-web/play_speed_icon.png" alt="" style="left:147px;top:21px;width:34px;height:23px;" />
+      <img class="btn-img" src="assets-web/play_pause_blue.png" alt="Pause" style="left:222px;top:16px;width:29px;height:29px;" />
+      <span class="nib-label z-ui" style="left:205px;top:22px;width:105px;height:18px;font-size:15px;color:#00397c;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">2:47</span>
+      <div class="card-num yellow" style="left:54px;top:195px;width:100px;height:100px;font-size:44px;">9</div>
+      <div class="card-num blue" style="left:176px;top:195px;width:100px;height:100px;font-size:44px;">13</div>
+      <div class="card-num merged blue" style="left:176px;top:71px;width:100px;height:100px;flex-direction:column;justify-content:center;font-size:44px;color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.35);"><span class="card-main" style="line-height:1;">13</span><span class="card-expr" style="font-size:11px;color:rgba(255,255,255,.92);line-height:1;margin-top:2px;font-weight:bold;">10+3</span></div>
+      <img class="btn-img" src="assets-web/play_plus_up.png" alt="+" style="left:40px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_minus_up.png" alt="-" style="left:102px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_mult_up.png" alt="×" style="left:164px;top:319px;width:60px;height:60px;filter:brightness(1.15);" />
+      <img class="btn-img" src="assets-web/play_divide_up.png" alt="÷" style="left:226px;top:319px;width:60px;height:60px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:390px;width:264px;height:8px;" />
+      <img class="btn-img" src="assets-web/play_undo_up.png" alt="Undo" style="left:41px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_reset_up.png" alt="Reset" style="left:109px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_menu_up.png" alt="Menu" style="left:177px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_pass_up.png" alt="Pass" style="left:245px;top:404px;width:44px;height:45px;" />
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="play-pause" data-ref-index="10">
+    <h2>Speed Play · 暂停</h2>
+    <p class="desc">Game is Paused + Resume · 无牌面</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="10">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0031.PNG" alt="" data-ref-shot="IMG_0031.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <span class="nib-label z-ui" style="left:36px;top:22px;width:120px;height:18px;font-size:15px;color:#00397c;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Score: 0</span>
+      <img class="z-ui" src="assets-web/play_speed_icon.png" alt="" style="left:147px;top:21px;width:34px;height:23px;" />
+      <span class="nib-label z-ui" style="left:205px;top:22px;width:105px;height:18px;font-size:15px;color:#00397c;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">2:44</span>
+      <span class="nib-label z-ui" style="left:40px;top:148px;width:240px;height:24px;font-size:18px;color:#c86b1a;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1;box-sizing:border-box;">Game is Paused</span>
+      <span class="nib-label z-ui" style="left:55px;top:165px;width:217px;height:95px;font-size:11px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.45;box-sizing:border-box;">To keep gameplay fair, a new problem will be presented when you resume. There is a limit of 2 pauses per game.</span>
+      <img class="btn-img" src="assets-web/button_blank_med_green.png" alt="Resume" style="left:81px;top:360px;width:158px;height:53px;" />
+      <span class="nib-label z-ui" style="left:81px;top:360px;width:158px;height:53px;font-size:15px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;line-height:1;box-sizing:border-box;">Resume</span>
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="play-menu" data-ref-index="12">
+    <h2>做题页 · Menu 展开</h2>
+    <p class="desc">background_play_menu + New Game / Solution / Quit / Resume · 截图校准</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="12">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0033.PNG" alt="" data-ref-shot="IMG_0033.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <span class="nib-label z-ui" style="left:36px;top:22px;width:120px;height:18px;font-size:15px;color:#00397c;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Score: 0</span>
+      <img class="z-ui" src="assets-web/play_speed_icon.png" alt="" style="left:147px;top:21px;width:34px;height:23px;" />
+      <span class="nib-label z-ui" style="left:205px;top:22px;width:105px;height:18px;font-size:15px;color:#00397c;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">2:39</span>
+      <div class="card-num blue" style="left:54px;top:71px;width:100px;height:100px;font-size:44px;">11</div>
+      <div class="card-num blue" style="left:176px;top:71px;width:100px;height:100px;font-size:44px;">7</div>
+      <div class="card-num blue" style="left:54px;top:195px;width:100px;height:100px;font-size:44px;">5</div>
+      <div class="card-num blue" style="left:176px;top:195px;width:100px;height:100px;font-size:44px;">7</div>
+      <img class="z-panel" src="assets-web/background_play_menu.png" alt="" style="left:0px;top:332px;width:320px;height:148px;" />
+      <img class="btn-img z-top" src="assets-web/play_new_up.png" alt="New" style="left:20px;top:352px;width:134px;height:54px;" />
+      <img class="btn-img z-top" src="assets-web/play_solution_up.png" alt="Solution" style="left:166px;top:352px;width:134px;height:54px;" />
+      <img class="btn-img z-top" src="assets-web/play_quit_up.png" alt="Quit" style="left:20px;top:414px;width:134px;height:54px;" />
+      <img class="btn-img z-top" src="assets-web/play_resume_up.png" alt="Resume" style="left:166px;top:414px;width:134px;height:54px;" />
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="solution" data-ref-index="13">
+    <h2>索要答案 · SubmitModal</h2>
+    <p class="desc">I’m stumped! 邮箱表单</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="13">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0034.PNG" alt="" data-ref-shot="IMG_0034.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <img class="z-ui" src="assets-web/logo_words2.png" alt="" style="left:30px;top:20px;width:140px;height:53px;" />
+      <span class="nib-label z-ui" style="left:57px;top:74px;width:215px;height:126px;font-size:11px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.45;box-sizing:border-box;">I’m stumped!<br/>Please send me the solution.</span>
+      <span class="nib-label z-ui" style="left:37px;top:153px;width:248px;height:31px;font-size:11px;color:#aaa;text-align:left;display:flex;align-items:center;background:#fff;border-radius:6px;padding:6px 10px;line-height:1;box-sizing:border-box;">Email</span>
+      <img class="btn-img" src="assets-web/button_blank_short_up.png" alt="Cancel" style="left:63px;top:202px;width:86px;height:33px;" />
+      <span class="nib-label z-ui" style="left:63px;top:202px;width:86px;height:33px;font-size:11px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;line-height:1;box-sizing:border-box;">Cancel</span>
+      <img class="btn-img" src="assets-web/button_blank_short_green.png" alt="Send" style="left:172px;top:202px;width:86px;height:33px;" />
+      <span class="nib-label z-ui" style="left:172px;top:202px;width:86px;height:33px;font-size:11px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;line-height:1;box-sizing:border-box;">Send</span>
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="ref-keyboard" data-ref-index="13">
+    <h2>参考 · 索要答案 + 键盘</h2>
+    <p class="desc">系统键盘无 IPA 素材，嵌入原版截图</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="13">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      
+      <img class="ref-shot z-bg" src="original-screenshots/IMG_0034.PNG" alt="键盘" style="left:0;top:0;width:320px;height:480px;object-fit:cover;" />
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="settings" data-ref-index="14">
+    <h2>设置 · SettingsViewController</h2>
+    <p class="desc">NIB UILabel 坐标 · 字号 17/11</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="14">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0035.PNG" alt="" data-ref-shot="IMG_0035.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <img class="z-ui" src="assets-web/settings_icon_gray.png" alt="" style="left:185px;top:20px;width:29px;height:30px;" />
+      <span class="nib-label z-ui" style="left:220px;top:25px;width:70px;height:20px;font-size:11px;color:#888888;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">SETTINGS</span>
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:58px;width:264px;height:8px;" />
+      <span class="nib-label z-ui" style="left:36px;top:74px;width:151px;height:36px;font-size:17px;color:#00397c;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Sound Effects</span>
+      <img class="z-ui" src="assets-web/settings_on_switch.png" alt="" style="left:216px;top:78px;width:78px;height:27px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:119px;width:264px;height:8px;" />
+      <span class="nib-label z-ui" style="left:36px;top:135px;width:151px;height:36px;font-size:17px;color:#00397c;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">1 - 10 Only</span>
+      <img class="z-ui" src="assets-web/settings_off_switch.png" alt="" style="left:216px;top:140px;width:78px;height:27px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:179px;width:264px;height:8px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:333px;width:264px;height:8px;" />
+      <span class="nib-label z-ui" style="left:36px;top:349px;width:151px;height:36px;font-size:17px;color:#00397c;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Facebook</span>
+      <img class="btn-img" src="assets-web/fb_login.png" alt="Connect" style="left:204px;top:351px;width:90px;height:31px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:390px;width:264px;height:8px;" />
+      <img class="btn-img" src="assets-web/button_menu_up.png" alt="MENU" style="left:42px;top:402px;width:86px;height:51px;" />
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="scores" data-ref-index="15">
+    <h2>好友分数 · HighScoresViewController</h2>
+    <p class="desc">FRIENDS’ SCORES · Local/Friends/Global · IMG_0036 校准</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="15">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0036.PNG" alt="" data-ref-shot="IMG_0036.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <span class="nib-label z-ui" style="left:175px;top:20px;width:120px;height:20px;font-size:11px;color:#888888;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">FRIENDS’ SCORES</span>
+      <img class="btn-img" src="assets-web/stats_solo_up.png" alt="Profile" style="left:102px;top:70px;width:89px;height:43px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:34px;top:103px;width:264px;height:8px;" />
+      <img class="z-panel" src="assets-web/shadowbox.png" alt="" style="left:34px;top:118px;width:264px;height:218px;opacity:.35;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:34px;top:330px;width:264px;height:8px;" />
+      <img class="btn-img z-top" src="assets-web/button_blank_short_up.png" alt="Local" style="left:53px;top:338px;width:76px;height:43px;" />
+      <span class="nib-label z-ui" style="left:53px;top:338px;width:76px;height:43px;font-size:11px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;line-height:1;box-sizing:border-box;">Local</span>
+      <div class="z-ui" style="left:129px;top:338px;width:76px;height:43px;background:rgba(198,230,252,.92);"></div>
+      <img class="btn-img z-top" src="assets-web/button_blank_short_up.png" alt="Friends" style="left:129px;top:338px;width:76px;height:43px;" />
+      <span class="nib-label z-ui" style="left:129px;top:338px;width:76px;height:43px;font-size:11px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;line-height:1;box-sizing:border-box;">Friends</span>
+      <img class="btn-img z-top" src="assets-web/button_blank_short_up.png" alt="Global" style="left:205px;top:338px;width:76px;height:43px;" />
+      <span class="nib-label z-ui" style="left:205px;top:338px;width:76px;height:43px;font-size:11px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;line-height:1;box-sizing:border-box;">Global</span>
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:34px;top:390px;width:264px;height:8px;" />
+      <img class="btn-img" src="assets-web/button_menu_up.png" alt="MENU" style="left:45px;top:400px;width:86px;height:51px;" />
+      <img class="btn-img" src="assets-web/button_blank_med_green.png" alt="Submit" style="left:139px;top:399px;width:152px;height:53px;" />
+      <span class="nib-label z-ui" style="left:139px;top:399px;width:152px;height:53px;font-size:11px;color:#00397c;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;line-height:1;box-sizing:border-box;">Submit Score</span>
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="help" data-ref-index="16">
+    <h2>帮助 · HelpViewController</h2>
+    <p class="desc">help1–6 透明叠加 · BACK / NEXT 翻页</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="16">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0037.PNG" alt="" data-ref-shot="IMG_0037.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <img class="z-ui" id="help-img" src="assets-web/help1.png" alt="help 1/6" style="left:0;top:0;width:320px;height:480px;object-fit:cover;object-position:top;" />
+      <img class="z-ui" src="assets-web/help_icon_gray.png" alt="" style="left:173px;top:16px;width:27px;height:27px;" />
+      <span class="nib-label z-ui" style="left:200px;top:20px;width:96px;height:20px;font-size:11px;color:#888888;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">HOW TO PLAY</span>
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:48px;width:264px;height:8px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:390px;width:264px;height:8px;" />
+      <img class="btn-img z-top" src="assets-web/button_back_up.png" alt="BACK" style="left:66px;top:402px;width:86px;height:51px;" />
+      <img class="btn-img z-top" src="assets-web/help_next_up.png" alt="NEXT" id="help-next" style="left:168px;top:402px;width:86px;height:51px;" />
+      <img class="btn-img z-top" src="assets-web/help_done_up.png" alt="MENU" id="help-done" style="left:168px;top:402px;width:86px;height:51px;display:none;" />
+      <span class="nib-label z-ui" style="left:256px;top:432px;width:42px;height:21px;font-size:11px;color:#888888;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1;box-sizing:border-box;"><span id="help-indicator">1</span></span>
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="help-6" data-ref-index="17">
+    <h2>帮助 · 第 6 页</h2>
+    <p class="desc">蓝牙双人说明 · BACK + MENU</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="17">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0038.PNG" alt="" data-ref-shot="IMG_0038.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <img class="z-ui" src="assets-web/help6.png" alt="help6" style="left:0px;top:0px;width:320px;height:480px;object-fit:cover;object-position:top;" />
+      <img class="z-ui" src="assets-web/help_icon_gray.png" alt="" style="left:173px;top:16px;width:27px;height:27px;" />
+      <span class="nib-label z-ui" style="left:200px;top:20px;width:96px;height:20px;font-size:11px;color:#888888;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">HOW TO PLAY</span>
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:48px;width:264px;height:8px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:390px;width:264px;height:8px;" />
+      <img class="btn-img z-top" src="assets-web/button_back_up.png" alt="BACK" style="left:66px;top:402px;width:86px;height:51px;" />
+      <img class="btn-img z-top" src="assets-web/help_done_up.png" alt="MENU" style="left:168px;top:402px;width:86px;height:51px;" />
+      <span class="nib-label z-ui" style="left:256px;top:432px;width:42px;height:21px;font-size:11px;color:#888888;text-align:center;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1;box-sizing:border-box;">6</span>
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="play-free-150" data-ref-index="18">
+    <h2>合并150 · Free Play</h2>
+    <p class="desc">(9+12+9)×5 → 150 单牌 · IMG_0039 校准</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="18">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0039.PNG" alt="" data-ref-shot="IMG_0039.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <span class="nib-label z-ui" style="left:36px;top:22px;width:120px;height:18px;font-size:15px;color:#00397c;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Solved: 0</span>
+      <img class="z-ui" src="assets-web/play_solo_blue.png" alt="" style="left:147px;top:21px;width:34px;height:23px;" />
+      <span class="nib-label z-ui" style="left:205px;top:22px;width:105px;height:18px;font-size:15px;color:#00397c;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">0:12</span>
+      <div class="card-num merged yellow" style="left:176px;top:70px;width:100px;height:100px;flex-direction:column;justify-content:center;font-size:36px;color:#00397c;text-shadow:none;"><span class="card-main" style="line-height:1;">150</span><span class="card-expr" style="font-size:10px;color:#00397c;line-height:1;margin-top:2px;font-weight:bold;">(9+12+9)x5</span></div>
+      <img class="btn-img" src="assets-web/play_plus_up.png" alt="+" style="left:40px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_minus_up.png" alt="-" style="left:102px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_mult_up.png" alt="×" style="left:164px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_divide_up.png" alt="÷" style="left:226px;top:319px;width:60px;height:60px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:390px;width:264px;height:8px;" />
+      <img class="btn-img" src="assets-web/play_undo_up.png" alt="Undo" style="left:41px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_reset_up.png" alt="Reset" style="left:109px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_menu_up.png" alt="Menu" style="left:177px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_pass_up.png" alt="Pass" style="left:245px;top:404px;width:44px;height:45px;" />
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="play-free-neg84" data-ref-index="19">
+    <h2>合并-84 · Free Play</h2>
+    <p class="desc">(5-9)×(9+12) → -84 单牌 · IMG_0040 校准</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="19">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0040.PNG" alt="" data-ref-shot="IMG_0040.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <span class="nib-label z-ui" style="left:36px;top:22px;width:120px;height:18px;font-size:15px;color:#00397c;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Solved: 0</span>
+      <img class="z-ui" src="assets-web/play_solo_blue.png" alt="" style="left:147px;top:21px;width:34px;height:23px;" />
+      <span class="nib-label z-ui" style="left:205px;top:22px;width:105px;height:18px;font-size:15px;color:#00397c;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">0:26</span>
+      <div class="card-num merged yellow" style="left:176px;top:194px;width:100px;height:100px;flex-direction:column;justify-content:center;font-size:32px;color:#00397c;text-shadow:none;"><span class="card-main" style="line-height:1;">-84</span><span class="card-expr" style="font-size:9px;color:#00397c;line-height:1;margin-top:2px;font-weight:bold;">(5-9)x(9+12)</span></div>
+      <img class="btn-img" src="assets-web/play_plus_up.png" alt="+" style="left:40px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_minus_up.png" alt="-" style="left:102px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_mult_up.png" alt="×" style="left:164px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_divide_up.png" alt="÷" style="left:226px;top:319px;width:60px;height:60px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:390px;width:264px;height:8px;" />
+      <img class="btn-img" src="assets-web/play_undo_up.png" alt="Undo" style="left:41px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_reset_up.png" alt="Reset" style="left:109px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_menu_up.png" alt="Menu" style="left:177px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_pass_up.png" alt="Pass" style="left:245px;top:404px;width:44px;height:45px;" />
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="play-free-partial" data-ref-index="20">
+    <h2>两牌态 · Free Play</h2>
+    <p class="desc">-4(5-9) + 21(9+12) 中间态 · IMG_0041 校准</p>
+    <div class="block-actions">
+      <button type="button" class="ref-preview-btn" data-open-original="20">对照原版截图</button>
+      <button type="button" class="overlay-toggle" data-overlay-toggle>叠加原版</button>
+    </div>
+    <div class="phone"><div class="screen">
+      <img class="ref-underlay" src="original-screenshots/IMG_0041.PNG" alt="" data-ref-shot="IMG_0041.PNG" />
+      <img class="z-bg" src="assets-web/background.png" alt="" style="left:0px;top:0px;width:320px;height:480px;" />
+      <span class="nib-label z-ui" style="left:36px;top:22px;width:120px;height:18px;font-size:15px;color:#00397c;text-align:left;display:flex;align-items:center;line-height:1;box-sizing:border-box;">Solved: 0</span>
+      <img class="z-ui" src="assets-web/play_solo_blue.png" alt="" style="left:147px;top:21px;width:34px;height:23px;" />
+      <span class="nib-label z-ui" style="left:205px;top:22px;width:105px;height:18px;font-size:15px;color:#00397c;text-align:right;display:flex;align-items:center;justify-content:flex-end;line-height:1;box-sizing:border-box;">0:29</span>
+      <div class="card-num merged blue" style="left:54px;top:70px;width:100px;height:100px;flex-direction:column;justify-content:center;font-size:44px;color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.35);"><span class="card-main" style="line-height:1;">-4</span><span class="card-expr" style="font-size:11px;color:rgba(255,255,255,.92);line-height:1;margin-top:2px;font-weight:bold;">5-9</span></div>
+      <div class="card-num merged blue" style="left:176px;top:194px;width:100px;height:100px;flex-direction:column;justify-content:center;font-size:44px;color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.35);"><span class="card-main" style="line-height:1;">21</span><span class="card-expr" style="font-size:11px;color:rgba(255,255,255,.92);line-height:1;margin-top:2px;font-weight:bold;">9+12</span></div>
+      <img class="btn-img" src="assets-web/play_plus_up.png" alt="+" style="left:40px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_minus_up.png" alt="-" style="left:102px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_mult_up.png" alt="×" style="left:164px;top:319px;width:60px;height:60px;" />
+      <img class="btn-img" src="assets-web/play_divide_up.png" alt="÷" style="left:226px;top:319px;width:60px;height:60px;" />
+      <img class="z-ui" src="assets-web/pencil.png" alt="" style="left:32px;top:390px;width:264px;height:8px;" />
+      <img class="btn-img" src="assets-web/play_undo_up.png" alt="Undo" style="left:41px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_reset_up.png" alt="Reset" style="left:109px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_menu_up.png" alt="Menu" style="left:177px;top:404px;width:44px;height:45px;" />
+      <img class="btn-img" src="assets-web/play_pass_up.png" alt="Pass" style="left:245px;top:404px;width:44px;height:45px;" />
+    </div></div>
+  </section>
+  <section class="screen-block visible" id="original">
+    <h2>原版截图 · iPod 真机</h2>
+    <p class="desc">对照用 · 640×960 · 点击放大</p>
+    <div class="original-gallery" id="original-grid"></div>
+  </section>
+</main>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+  <img id="lightbox-img" src="" alt="" />
+  <div class="lightbox-bar">
+    <button type="button" id="lightbox-prev">上一张</button>
+    <span id="lightbox-label">1 / 21</span>
+    <button type="button" id="lightbox-next">下一张</button>
+    <button type="button" id="lightbox-close">关闭</button>
+  </div>
+</div>
+<footer>
+  预览：<code>cd TwentyFour-ipa-extracted && python3 -m http.server 8765</code> →
+  <code>http://127.0.0.1:8765/mockup.html</code> · 生成：<code>python3 tools/generate_mockup.py</code>
+</footer>
+<script>
+  const ORIGINAL_SHOTS = [
+    'IMG_0021.PNG','IMG_0022.PNG','IMG_0023.PNG','IMG_0024.PNG',
+    'IMG_0025.PNG','IMG_0026.PNG','IMG_0027.PNG','IMG_0028.PNG','IMG_0029.PNG',
+    'IMG_0030.PNG','IMG_0031.PNG','IMG_0032.PNG','IMG_0033.PNG','IMG_0034.PNG',
+    'IMG_0035.PNG','IMG_0036.PNG','IMG_0037.PNG','IMG_0038.PNG',
+    'IMG_0039.PNG','IMG_0040.PNG','IMG_0041.PNG'
+  ].map(n => 'original-screenshots/' + n);
+
+  const ORIGINAL_META = [
+    { title: '主页', desc: '游戏主菜单。Logo + Play / Settings / Statistics / Help 四个入口按钮。' },
+    { title: '模式选择', desc: '点击 Play 进入。GAME MODES 页：Free Play、Speed Play、Host a Game、Join a Game，底部 BACK 与 Invite Friends。' },
+    { title: '邀请邮件', desc: 'Invite Friends 触发的系统邮件撰写页，主题为「Can you beat my score?」。' },
+    { title: '联机等待', desc: 'Peer to Peer 多人模式：Waiting for players… 等待界面，可 Cancel 取消。' },
+    { title: '蓝牙不可用', desc: 'Peer to Peer 联机失败提示：Bluetooth is not available，引导去系统设置开启。' },
+    { title: '做题页 · Free Play', desc: '单人 Free Play 练习。顶部 Solved 计数与计时，四张牌 + 四则运算，底部 Undo / Reset / Menu / Pass。' },
+    { title: 'Speed Play 说明', desc: '竞速模式开赛前说明：Solve Bonus +10 sec、Pass Penalty -20 sec，可选 Don\u2019t show again，点 START! 开始。' },
+    { title: '做题页 · Speed Play', desc: '竞速模式进行中。Score + 倒计时，顶部 Pause 可暂停，牌区与 Free Play 同布局。' },
+    { title: '选中牌与运算符', desc: 'Speed Play 交互态：选中数字牌与 + 运算符高亮（黄底）。' },
+    { title: '合并运算结果', desc: '两牌合并后显示算式（如 10+3），结果牌 13 替换原牌位。' },
+    { title: '游戏暂停', desc: '点击 Pause 后的暂停页：Game is Paused，说明恢复后会换题且每局限暂停 2 次。' },
+    { title: 'Speed Play · 新题', desc: '暂停恢复或 Pass 后呈现的新题目，Score 归零重新计时。' },
+    { title: '做题页菜单', desc: '游戏中按 Menu 展开的底部菜单：New Game / Solution / Quit / Resume。' },
+    { title: '索要答案', desc: 'Solution 流程：I\u2019m stumped! 输入邮箱请求发送解法（含系统键盘）。' },
+    { title: '设置', desc: 'Settings 页：Sound Effects、1-10 Only 开关，Facebook Connect，底部 MENU 返回。' },
+    { title: '好友分数', desc: 'Friends\u2019 Scores 排行榜：Local / Friends / Global 切换，Submit Score 提交分数。' },
+    { title: '帮助 · 第 1 页', desc: 'HOW TO PLAY 教程首页：用四张牌和 +−×÷ 凑 24 的基本规则与示例解法。' },
+    { title: '帮助 · 第 6 页', desc: 'HOW TO PLAY 末页：蓝牙 Peer-to-peer 双人玩法说明与设备要求。' },
+    { title: 'Free Play · 合并 150', desc: 'Free Play 合并后只剩一张黄牌：150，下方算式 (9+12+9)x5。计时 0:12。' },
+    { title: 'Free Play · 合并 -84', desc: 'Free Play 合并结果 -84，算式 (5-9)x(9+12)，黄牌位于右下格。计时 0:26。' },
+    { title: 'Free Play · 两牌中间态', desc: 'Free Play 部分合并：左上 -4(5-9) 与右下 21(9+12) 两张蓝牌，尚未凑成 24。计时 0:29。' }
+  ];
+
+  const originalGrid = document.getElementById('original-grid');
+  originalGrid.innerHTML = ORIGINAL_SHOTS.map((src, i) => {
+    const name = src.split('/').pop().replace('.PNG', '');
+    const meta = ORIGINAL_META[i] || { title: name, desc: '' };
+    return `<div class="original-item">
+      <div class="phone"><div class="screen">
+        <img class="original-full z-bg" src="${src}" alt="${meta.title}"
+             data-lightbox-index="${i}" loading="lazy" style="cursor:zoom-in;pointer-events:auto;" />
+      </div></div>
+      <div class="original-info">
+        <div class="idx">${i + 1} / ${ORIGINAL_SHOTS.length}</div>
+        <h3>${meta.title}</h3>
+        <p>${meta.desc}</p>
+        <span class="file-id">${name}.PNG</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+  const lightboxLabel = document.getElementById('lightbox-label');
+  let lightboxIdx = 0;
+
+  function openLightbox(idx) {
+    lightboxIdx = (idx + ORIGINAL_SHOTS.length) % ORIGINAL_SHOTS.length;
+    lightboxImg.src = ORIGINAL_SHOTS[lightboxIdx];
+    const meta = ORIGINAL_META[lightboxIdx] || {};
+    lightboxImg.alt = meta.title || '';
+    lightboxLabel.textContent = `${lightboxIdx + 1} / ${ORIGINAL_SHOTS.length} · ${meta.title || ''}`;
+    lightbox.classList.add('open');
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    lightboxImg.src = '';
+  }
+
+  originalGrid.addEventListener('click', (e) => {
+    const img = e.target.closest('[data-lightbox-index]');
+    if (!img) return;
+    openLightbox(Number(img.dataset.lightboxIndex));
+  });
+
+  document.getElementById('lightbox-prev').addEventListener('click', () => openLightbox(lightboxIdx - 1));
+  document.getElementById('lightbox-next').addEventListener('click', () => openLightbox(lightboxIdx + 1));
+  document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', (e) => {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') openLightbox(lightboxIdx - 1);
+    if (e.key === 'ArrowRight') openLightbox(lightboxIdx + 1);
+  });
+
+  document.querySelectorAll('[data-open-original]').forEach(btn => {
+    btn.addEventListener('click', () => openLightbox(Number(btn.dataset.openOriginal)));
+  });
+
+  document.querySelectorAll('[data-overlay-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const screen = btn.closest('.screen-block')?.querySelector('.screen');
+      if (!screen) return;
+      const on = screen.classList.toggle('overlay-on');
+      btn.classList.toggle('active', on);
+      btn.textContent = on ? '隐藏叠加' : '叠加原版';
+    });
+  });
+
+  const DOWN = new Set([
+    'menu_play_up.png','menu_help_up.png','menu_settings_up.png','menu_stats_up.png',
+    'free_play_yellow_up.png','speed_play_yellow_up.png','join_game_yellow2_up.png',
+    'host_game_yellow2_up.png','mode_back_up.png','invite_friends_up.png',
+    'play_plus_up.png','play_minus_up.png','play_mult_up.png','play_divide_up.png',
+    'play_undo_up.png','play_reset_up.png','play_menu_up.png','play_pass_up.png',
+    'play_pause_blue.png','play_new_up.png','play_solution_up.png','play_quit_up.png',
+    'play_resume_up.png','button_menu_up.png','button_back_up.png',
+    'help_next_up.png','help_done_up.png','stats_solo_up.png','stats_multi_up.png',
+    'button_blank_med_green.png','button_blank_short_up.png','button_blank_short_green.png'
+  ].map(n => 'assets-web/' + n.replace('_up.png', '_down.png')));
+
+  const nav = document.getElementById('nav');
+  const main = document.getElementById('main');
+  const blocks = main.querySelectorAll('.screen-block');
+
+  nav.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    nav.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = btn.dataset.target;
+    if (target === 'all') {
+      main.classList.add('gallery-all');
+      blocks.forEach(b => b.classList.toggle('visible', b.id !== 'original'));
+    } else {
+      main.classList.remove('gallery-all');
+      blocks.forEach(b => b.classList.toggle('visible', b.id === target));
+    }
+    if (target !== 'all') history.replaceState(null, '', `#${target}`);
+    else history.replaceState(null, '', location.pathname + location.search);
+  });
+
+  const hashTarget = location.hash.replace(/^#/, '');
+  if (hashTarget) {
+    const hashBtn = nav.querySelector(`button[data-target="${hashTarget}"]`);
+    if (hashBtn) hashBtn.click();
+  }
+
+  const helpImages = ['help1.png','help2.png','help3.png','help4.png','help5.png','help6.png']
+    .map(n => 'assets-web/' + n);
+  let helpIdx = 0;
+  const helpImg = document.getElementById('help-img');
+  const helpIndicator = document.getElementById('help-indicator');
+  const helpNext = document.getElementById('help-next');
+  const helpDone = document.getElementById('help-done');
+
+  if (helpNext && helpImg) {
+    helpNext.addEventListener('click', () => {
+      if (helpIdx >= helpImages.length - 1) return;
+      helpIdx++;
+      helpImg.src = helpImages[helpIdx];
+      helpIndicator.textContent = String(helpIdx + 1);
+      if (helpIdx === helpImages.length - 1) {
+        helpNext.style.display = 'none';
+        helpDone.style.display = 'block';
+      }
+    });
+    helpDone.addEventListener('click', () => {
+      helpIdx = 0;
+      helpImg.src = helpImages[0];
+      helpIndicator.textContent = '1';
+      helpNext.style.display = 'block';
+      helpDone.style.display = 'none';
+    });
+  }
+
+  document.querySelectorAll('.btn-img').forEach(btn => {
+    const up = btn.getAttribute('src');
+    const down = up.replace('_up.png', '_down.png');
+    const hasDown = DOWN.has(down);
+    const press = () => { if (hasDown) btn.src = down; else btn.classList.add('pressed'); };
+    const release = () => { if (hasDown) btn.src = up; else btn.classList.remove('pressed'); };
+    btn.addEventListener('mousedown', press);
+    btn.addEventListener('mouseup', release);
+    btn.addEventListener('mouseleave', release);
+    btn.addEventListener('touchstart', e => { e.preventDefault(); press(); }, { passive: false });
+    btn.addEventListener('touchend', release);
+  });
+</script>
+</body>
+</html>
