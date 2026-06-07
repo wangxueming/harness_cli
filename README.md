@@ -10,7 +10,7 @@ pnpm agents:compile
 pnpm harness check
 ```
 
-Open in Cursor and read [`AGENTS.md`](AGENTS.md).
+Open in Cursor and read [`AGENTS.md`](AGENTS.md). For a full walkthrough (24-point game example), see [`USAGE.md`](USAGE.md).
 
 ## Documentation
 

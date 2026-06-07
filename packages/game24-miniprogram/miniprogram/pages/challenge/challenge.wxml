@@ -1,0 +1,19 @@
+<view class="challenge">
+  <text class="title">挑战关卡 第{{levelNumber}}关</text>
+  <view class="timer">{{elapsedText}}</view>
+  <view class="board">
+    <view
+      wx:for="{{cardViews}}"
+      wx:key="id"
+      class="card {{item.selected ? 'selected' : ''}}"
+      bindtap="onCardTap"
+      data-id="{{item.id}}"
+    >
+      <text>{{item.displayValue}}</text>
+    </view>
+  </view>
+  <view class="operators">
+    <button wx:for="{{operators}}" wx:key="*this" data-op="{{item}}" bindtap="onOperatorTap">{{item}}</button>
+  </view>
+  <button class="exit-btn" bindtap="onExit">退出挑战</button>
+</view>

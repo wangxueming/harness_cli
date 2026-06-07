@@ -1,0 +1,7 @@
+<view class="result">
+  <text class="title">恭喜过关！</text>
+  <text class="elapsed">本关耗时 {{elapsedText}}</text>
+  <text class="hint" wx:if="{{hintUsed}}">本关使用了「?」提示</text>
+  <button open-type="share">分享给好友挑战</button>
+  <button bindtap="onContinue">继续闯关</button>
+</view>

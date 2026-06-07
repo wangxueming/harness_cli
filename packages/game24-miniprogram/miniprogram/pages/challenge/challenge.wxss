@@ -1,0 +1,51 @@
+.challenge {
+  padding: 24rpx;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 24rpx;
+}
+
+.timer {
+  text-align: center;
+  margin-bottom: 16rpx;
+}
+
+.board {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20rpx;
+  margin: 40rpx 0;
+}
+
+.card {
+  width: 140rpx;
+  height: 180rpx;
+  background: #fff;
+  border: 2rpx solid #333;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+}
+
+.card.selected {
+  border-color: #e94560;
+}
+
+.operators {
+  display: flex;
+  justify-content: center;
+  gap: 16rpx;
+}
+
+.exit-btn {
+  margin-top: 40rpx;
+  background: #666;
+  color: #fff;
+}

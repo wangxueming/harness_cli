@@ -274,6 +274,18 @@ roles:
     specialization: "查询效率、热路径优化、内存管理、异步阻塞检查"
     phase: P2
 
+  # ─── 设计岗位 P2 ───
+  ui-designer:
+    title: UI 设计师
+    soul_dir: souls/ui-designer
+    agent_file: .cursor/agents/ui-designer.md
+    description: "UI 设计师：编写/修订 ui-design.md 视觉设计系统（tokens + 设计说明）。"
+    readonly: false
+    mission_template: templates/mission/ui-designer.mission.md
+    adversary_of: [implementer, spec-impl]
+    debate_mode: kill-findings
+    phase: P2
+
   # ─── 交付岗位 P2 ───
   product-clarifier:
     title: 产品经理

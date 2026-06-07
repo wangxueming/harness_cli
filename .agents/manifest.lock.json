@@ -1,6 +1,6 @@
 {
   "target": "cursor",
-  "generated_at": "2026-06-04T06:38:26.014Z",
+  "generated_at": "2026-06-05T07:06:28.638Z",
   "agents": [
     ".cursor/agents/orchestrator.md",
     ".cursor/agents/explore.md",
@@ -22,6 +22,7 @@
     ".cursor/agents/solution-fit-challenger.md",
     ".cursor/agents/documentation-reviewer.md",
     ".cursor/agents/performance-reviewer.md",
+    ".cursor/agents/ui-designer.md",
     ".cursor/agents/product-clarifier.md",
     ".cursor/agents/ci-investigator.md",
     ".cursor/agents/pr-shepherd.md",

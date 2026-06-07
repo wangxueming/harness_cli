@@ -26,3 +26,28 @@ domains:
       - id: providers
         glob: "**/providers/**"
         may_import: [types, config]
+
+  game24:
+    root: packages/game24-miniprogram/src
+    layers:
+      - id: types
+        glob: "**/types/**"
+        may_import: []
+      - id: config
+        glob: "**/config/**"
+        may_import: [types]
+      - id: repo
+        glob: "**/repo/**"
+        may_import: [types, config]
+      - id: service
+        glob: "**/service/**"
+        may_import: [types, config, repo]
+      - id: runtime
+        glob: "**/runtime/**"
+        may_import: [types, config, repo, service]
+      - id: ui
+        glob: "**/ui/**"
+        may_import: [types, config, repo, service, runtime]
+      - id: providers
+        glob: "**/providers/**"
+        may_import: [types, config]

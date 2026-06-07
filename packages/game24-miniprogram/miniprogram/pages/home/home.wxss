@@ -1,0 +1,26 @@
+.home {
+  padding: 40rpx;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 40rpx;
+  color: #333;
+}
+
+.section {
+  margin-bottom: 32rpx;
+}
+
+.label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.start-btn {
+  margin-top: 40rpx;
+  background: #e94560;
+  color: #fff;
+}

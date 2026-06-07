@@ -1,0 +1,33 @@
+<view class="play">
+  <view class="timer">{{elapsedText}}</view>
+  <view class="explore-progress" wx:if="{{showExploreProgress}}">
+    <text>已发现 {{exploreX}} / {{exploreY}}</text>
+    <button bindtap="onEndExplore">结束探索</button>
+  </view>
+  <view class="board">
+    <view
+      wx:for="{{cardViews}}"
+      wx:key="id"
+      class="card {{item.selected ? 'selected' : ''}} {{item.consumed ? 'consumed' : ''}} {{item.flipping ? 'flipping' : ''}}"
+      bindtap="onCardTap"
+      data-id="{{item.id}}"
+    >
+      <text>{{item.displayValue}}</text>
+      <text wx:if="{{item.showFlipHint}}" class="flip-hint">↻</text>
+    </view>
+  </view>
+  <view class="operators">
+    <button wx:for="{{operators}}" wx:key="*this" data-op="{{item}}" bindtap="onOperatorTap">{{item}}</button>
+  </view>
+  <view class="history">
+    <view
+      wx:for="{{historyLabels}}"
+      wx:key="index"
+      class="history-item {{item.active ? 'active' : ''}}"
+      bindtap="onHistoryTap"
+      data-index="{{item.index}}"
+    >{{item.label}}</view>
+  </view>
+  <button class="hint-btn" bindtap="onHint">?</button>
+  <view class="feedback" wx:if="{{feedback}}">{{feedback}}</view>
+</view>

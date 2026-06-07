@@ -44,7 +44,7 @@ pnpm dev               # demo-domain
 | Registry | `config/agents.registry.yaml` |
 | Generated agents | `.cursor/agents/*.md` — **do not hand-edit** |
 
-Invoke: `/reviewer`, `/implementer`, `/orchestrator`, `/spec-requirements`, etc.
+Invoke: `/reviewer`, `/implementer`, `/orchestrator`, `/spec-requirements`, `/ui-designer`, etc.
 
 SDD detailed prompts: `.claude/agents/sdd/` (P2 unify via compile).
 
@@ -65,6 +65,7 @@ SDD detailed prompts: `.claude/agents/sdd/` (P2 unify via compile).
 | New feature Spec | `docs/exec-plans/active/<domain>/<feature>/` |
 | Layer violation | `docs/architecture/LAYERS.md` |
 | Soul authoring | `docs/guides/per-role-soul.md` |
+| Visual design system | `policy/ui-design-contract.md` · `ui-design.md` · `/ui-designer` |
 | Rule → Spec → Harness | `docs/guides/adoption-path.md` |
 | Models (P2+) | `config/models.registry.yaml` |
 
@@ -73,6 +74,7 @@ SDD detailed prompts: `.claude/agents/sdd/` (P2 unify via compile).
 | Domain | Package |
 |--------|---------|
 | demo-domain | `packages/demo-domain` |
+| game24 | `packages/game24-miniprogram`（24点微信小程序案例） |
 
 Add domains in `config/domains.yaml`.
 
@@ -80,6 +82,7 @@ Add domains in `config/domains.yaml`.
 
 - `policy/never-do.md` — global NEVER
 - `policy/spec-contract.md` — Spec five questions
+- `policy/ui-design-contract.md` — `ui-design.md` format (visual tokens + prose)
 - `policy/review.md` — merge gate
 
 ## Docs map

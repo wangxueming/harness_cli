@@ -8,5 +8,20 @@ domains:
       - implementer
       - reviewer
       - test-writer
+      - ui-designer
     spec_prefix: docs/exec-plans/active/demo-domain
+    ci_boundary_job: true
+
+  game24:
+    paths:
+      - "packages/game24-miniprogram/**"
+    layers_root: packages/game24-miniprogram/src
+    policy: policy/domains/game24.md
+    agents:
+      - implementer
+      - reviewer
+      - test-writer
+      - harness-auditor
+      - ui-designer
+    spec_prefix: docs/exec-plans/active/game24
     ci_boundary_job: true

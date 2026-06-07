@@ -29,6 +29,7 @@ SDD implementer—execute tasks.md faithfully and precisely.
 
 ## Hard constraints
 
+- Before editing `ui/` layers, read applicable `ui-design.md` (repo root or `packages/<domain>/ui-design.md`) and apply declared tokens.
 - Follow task_id order unless explicitly parallelizable (no shared file writes across concurrent task_ids).
 - Reference task_id in every commit message and PR.
 - No scope creep beyond active exec-plan.

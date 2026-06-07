@@ -1,0 +1,21 @@
+.splash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #16213e;
+}
+
+.title {
+  font-size: 48rpx;
+  color: #eee;
+  margin-bottom: 80rpx;
+}
+
+.start-btn {
+  background: #e94560;
+  color: #fff;
+  padding: 24rpx 80rpx;
+  border-radius: 12rpx;
+}

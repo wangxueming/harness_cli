@@ -66,42 +66,50 @@ function resolveImport(
   return undefined;
 }
 
-describe("architecture boundary (demo-domain)", () => {
-  it("respects policy/layers.yaml import rules", () => {
+function collectViolations(
+  domainId: string,
+  domain: { root: string; layers: LayerDef[] }
+): string[] {
+  const root = path.join(repoRoot, domain.root);
+  if (!fs.existsSync(root)) return [];
+
+  const layers = domain.layers;
+  const layerById = Object.fromEntries(layers.map((l) => [l.id, l]));
+  const violations: string[] = [];
+
+  for (const file of listTsFiles(root)) {
+    const fromLayer = layerForFile(file, root, layers);
+    if (!fromLayer) continue;
+    const allowed = new Set(layerById[fromLayer]?.may_import ?? []);
+    const content = fs.readFileSync(file, "utf8");
+    for (const spec of parseImports(content)) {
+      const target = resolveImport(spec, file, root);
+      if (!target) continue;
+      const toLayer = layerForFile(target, root, layers);
+      if (!toLayer || toLayer === fromLayer) continue;
+      if (!allowed.has(toLayer)) {
+        const relFrom = path.relative(repoRoot, file);
+        const relTo = path.relative(repoRoot, target);
+        violations.push(
+          `[${domainId}] ${relFrom} (${fromLayer}) imports ${relTo} (${toLayer}) — allowed: ${[...allowed].join(", ") || "(none)"}. See docs/architecture/LAYERS.md`
+        );
+      }
+    }
+  }
+  return violations;
+}
+
+describe("architecture boundary", () => {
+  it("respects policy/layers.yaml import rules for all domains", () => {
     const policy = parseYaml(
       fs.readFileSync(path.join(repoRoot, "policy/layers.yaml"), "utf8")
     ) as {
-      domains: Record<
-        string,
-        { root: string; layers: LayerDef[] }
-      >;
+      domains: Record<string, { root: string; layers: LayerDef[] }>;
     };
 
-    const domain = policy.domains["demo-domain"];
-    const root = path.join(repoRoot, domain.root);
-    const layers = domain.layers;
-    const layerById = Object.fromEntries(layers.map((l) => [l.id, l]));
-
     const violations: string[] = [];
-
-    for (const file of listTsFiles(root)) {
-      const fromLayer = layerForFile(file, root, layers);
-      if (!fromLayer) continue;
-      const allowed = new Set(layerById[fromLayer]?.may_import ?? []);
-      const content = fs.readFileSync(file, "utf8");
-      for (const spec of parseImports(content)) {
-        const target = resolveImport(spec, file, root);
-        if (!target) continue;
-        const toLayer = layerForFile(target, root, layers);
-        if (!toLayer || toLayer === fromLayer) continue;
-        if (!allowed.has(toLayer)) {
-          const relFrom = path.relative(repoRoot, file);
-          const relTo = path.relative(repoRoot, target);
-          violations.push(
-            `${relFrom} (${fromLayer}) imports ${relTo} (${toLayer}) — allowed: ${[...allowed].join(", ") || "(none)"}. See docs/architecture/LAYERS.md`
-          );
-        }
-      }
+    for (const [domainId, domain] of Object.entries(policy.domains)) {
+      violations.push(...collectViolations(domainId, domain));
     }
 
     const unknown = violations.filter((v) => !KNOWN_VIOLATIONS.includes(v));

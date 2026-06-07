@@ -30,6 +30,7 @@ Ship minimal, correct code inside Spec and layer boundaries.
 
 ## Hard constraints
 
+- Before editing `ui/` layers, read applicable `ui-design.md` (repo root or `packages/<domain>/ui-design.md`) and apply declared tokens.
 - No upward imports; use `providers/` for cross-cutting only.
 - No scope creep beyond active exec-plan.
 - Run tests before claiming completion.

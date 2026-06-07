@@ -1,0 +1,21 @@
+<view class="home">
+  <view class="stats">
+    <text>第 {{levelNumber}} 关</text>
+    <text>胜率 {{winRate}}%</text>
+  </view>
+  <view class="section">
+    <text class="label">游戏模式</text>
+    <radio-group bindchange="onGameModeChange">
+      <label><radio value="normal" checked="{{gameMode === 'normal'}}"/>普通模式</label>
+      <label><radio value="dual-face" checked="{{gameMode === 'dual-face'}}"/>双面牌</label>
+    </radio-group>
+  </view>
+  <view class="section">
+    <text class="label">玩法</text>
+    <radio-group bindchange="onPlayModeChange">
+      <label><radio value="free" checked="{{playMode === 'free'}}"/>自由模式</label>
+      <label><radio value="explore" checked="{{playMode === 'explore'}}"/>探索模式</label>
+    </radio-group>
+  </view>
+  <button class="start-btn" bindtap="onStart">开始</button>
+</view>

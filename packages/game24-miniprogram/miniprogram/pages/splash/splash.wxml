@@ -1,0 +1,4 @@
+<view class="splash">
+  <text class="title">24点</text>
+  <button class="start-btn" bindtap="onStart">开始游戏</button>
+</view>
